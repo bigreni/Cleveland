@@ -9,7 +9,7 @@
     if (/(android)/i.test(navigator.userAgent)) {
         admobid = { // for Android
             banner: 'ca-app-pub-1683858134373419/7790106682',
-            interstitial:'ca-app-pub-1683858134373419/5736007886'
+            interstitial:'ca-app-pub-9249695405712287/3416685158'
             //banner: 'ca-app-pub-3886850395157773/3411786244'
             //interstitial: 'ca-app-pub-9249695405712287/3301233156'
         };
@@ -167,6 +167,7 @@ TransitMaster.StopTimes = function (options) {
                 $("#routeWait").addClass("hidden");
             }
         });
+        $("span").remove();
     }
 
     function getDirections() {
@@ -220,6 +221,7 @@ TransitMaster.StopTimes = function (options) {
                 $("#directionWait").addClass("hidden");
             }
         });
+        $("span").remove();
     }
 
     function getStops() {
@@ -263,6 +265,7 @@ TransitMaster.StopTimes = function (options) {
                 $("#stopWait").addClass("hidden");
             }
         });
+        $("span").remove();
     }
 
 	function getArrivalTimes(refresh) {
@@ -315,58 +318,8 @@ TransitMaster.StopTimes = function (options) {
 				$("#stopWait").addClass("hidden");
 			}
 		});
+        $("span").remove();
 	}
-
-    //function getArrivalTimes(refresh) {
-    //    if (!refresh) {
-    //        reset(true);
-    //        $("#stopWait").removeClass("hidden");
-    //    }
-
-    //    $.ajax({
-    //        type: "POST",
-    //        url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getStopTimes",
-    //        data: "{routeID: " + $("#MainMobileContent_routeList").val() + ",	directionID: " + $("#MainMobileContent_directionList").val() + ",	stopID:	" + $("#MainMobileContent_stopList").val() + ", useArrivalTimes:	" + settings.arrivals + "}",
-    //        contentType: "application/json;	charset=utf-8",
-    //        dataType: "json",
-    //        success: function (msg) {
-    //            if (msg.d == null) {
-    //                msg.d = { errorMessage: "Sorry, an	internal error has occurred" };
-    //            }
-
-    //            if (msg.d.errorMessage == null && (msg.d.routeStops == null || msg.d.routeStops[0].stops == null || msg.d.routeStops[0].stops[0].crossings == null || msg.d.routeStops[0].stops[0].crossings.length == 0))
-    //                msg.d.errorMessage = "No upcoming stop times found";
-
-    //            if (msg.d.errorMessage != null) {
-    //                displayError(msg.d.errorMessage);
-    //                return;
-    //            }
-
-    //            msg.d.stops = msg.d.routeStops[0].stops;
-
-    //            var count = msg.d.stops[0].crossings.length;
-    //            msg.d.heading = "Next " + (count > 1 ? count : "") + " Vehicle " + settings.headingLabel + (count > 1 ? "s" : "");
-
-    //            var result = $("#stopTemplate").render(msg.d);
-
-    //            if (refresh)
-    //                $("#resultBox").html($(result).html());
-    //            else
-    //                displayResultsBox(result);
-
-    //            if (!refresh)
-    //                timer = window.setInterval(function () {
-    //                    getArrivalTimes(true);
-    //                }, 30000);
-    //        },
-    //        error: function () {
-    //            displayError("Failed to	load stop times");
-    //        },
-    //        complete: function (jqXHR, textStatus) {
-    //            $("#stopWait").addClass("hidden");
-    //        }
-    //    });
-    //}
 
     function displayError(error) {
         reset(true);
