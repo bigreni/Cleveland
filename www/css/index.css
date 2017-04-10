@@ -33,6 +33,7 @@ div#fullpage {
 	height: 100%;
 	margin: 0;
 	padding: 0;
+    background-color: #CCC;
 }
 
 /* Landscape layout (with min-width) */
@@ -149,7 +150,7 @@ option.displayNone
 	display:none;
 }
 
-select.seleccion
+select.droplist
 {
     font-size: medium;
 	margin-bottom : 10px;

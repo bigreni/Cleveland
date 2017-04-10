@@ -168,6 +168,7 @@ TransitMaster.StopTimes = function (options) {
             }
         });
         $("span").remove();
+        $(".dropList").select2();
     }
 
     function getDirections() {
@@ -222,6 +223,7 @@ TransitMaster.StopTimes = function (options) {
             }
         });
         $("span").remove();
+        $(".dropList").select2();
     }
 
     function getStops() {
@@ -266,6 +268,7 @@ TransitMaster.StopTimes = function (options) {
             }
         });
         $("span").remove();
+        $(".dropList").select2();
     }
 
 	function getArrivalTimes(refresh) {
@@ -319,6 +322,7 @@ TransitMaster.StopTimes = function (options) {
 			}
 		});
         $("span").remove();
+        $(".dropList").select2();
 	}
 
     function displayError(error) {
