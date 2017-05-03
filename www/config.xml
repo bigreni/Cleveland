@@ -55,7 +55,7 @@ xmlns:gap="http://phonegap.com/ns/1.0"
     <icon gap:platform="ios" height="144" src="res/icon/ios/Icon-72@2x.png" width="144" />
     <icon gap:platform="ios" height="120" src="res/icon/ios/Icon-App-60x60@2x.png" width="120" />
     <icon gap:platform="ios" height="76" src="res/icon/ios/Icon-App-76x76@1x.png" width="76" />
-    <icon gap:platform="ios" height="152" src="res/icon/ios/Icon-App-76x76@2x" width="152" />
+    <icon gap:platform="ios" height="152" src="res/icon/ios/Icon-App-76x76@2x.png" width="152" />
     <icon gap:platform="ios" height="50" src="res/icon/ios/Icon-Small-50.png" width="50" />
     <icon gap:platform="ios" height="100" src="res/icon/ios/Icon-Small-50@2x.png" width="100" />
     <icon gap:platform="webos" src="res/icon/webos/icon-64.png" />
