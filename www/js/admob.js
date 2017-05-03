@@ -10,16 +10,17 @@
         admobid = { // for Android
             banner: 'ca-app-pub-1683858134373419/7790106682',
             interstitial:'ca-app-pub-9249695405712287/3416685158'
-            //banner: 'ca-app-pub-3886850395157773/3411786244'
-            //interstitial: 'ca-app-pub-9249695405712287/3301233156'
         };
-    }
+    } else if(/(ipod|iphone|ipad)/i.test(navigator.userAgent)) { // for ios
+    admobid = {
+      banner: 'ca-app-pub-1683858134373419/7790106682', 
+      interstitial: 'ca-app-pub-9249695405712287/1066062756'
+    };
+  }
 
     function initApp() {
         if (!AdMob) { alert('admob plugin not ready'); return; }
         initAd();
-        // display the banner at startup
-        //createSelectedBanner();
         //display interstitial at startup
         loadInterstitial();
     }
@@ -54,8 +55,8 @@
 
    function checkFirstUse()
     {
-		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});        askRating();
-        initApp();
+		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});        //askRating();
+        //initApp();
     }
 
 function askRating()
@@ -66,6 +67,7 @@ function askRating()
   usesUntilPrompt: 10,
   promptAgainForEachNewVersion: true,
   storeAppURL: {
+                ios: '1225698349',
                 android: 'market://details?id=com.cleveland.withads'
                }
 };
