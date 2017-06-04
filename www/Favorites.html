@@ -5,62 +5,29 @@
 <meta name="format-detection" content="telephone=no" />
 <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
 <link rel="stylesheet" type="text/css" href="css/index.css" />
-<!-- Include the jQuery library -->
 <script src="http://code.jquery.com/jquery-1.12.0.min.js"></script>
-<link href="css/select2.min.css" rel="stylesheet" />
-<script src="js/select2.min.js"></script>
+<title>COTA Favorites</title>
 <link rel="stylesheet" href="css/jquery.sidr.dark.min.css">
 <script src="js/jquery.sidr.min.js"></script>
-<title>COTA Arrivals</title>
 </head>
-<body onload="onLoad();">
+<body onload="loadFavorites();">
     <script type="text/javascript" src="cordova.js"></script>
-    <script type="text/javascript" src="js/admob.js"></script>
     <script type="text/javascript" src="js/favorites.js"></script>
 	<script type="text/javascript" src="js/jsrender.min.js"></script>
 	<script type="text/javascript" src="js/jquery.cookie.js"></script>    <div id="fullpage" data-role="page">
 		<div id="contentBox" class="box">
                  <h3><a id="simplemenu" href="#sidr" style="font-size: xx-large; background-color: #d31145; padding: 5px">&#9776;</a>
-               RTA Live Arrival Times</h3>
+               Favorites</h3>
             <div id="sidr">
               <ul>
                 <li><a href="index.html" >Arrivals</a></li>
                 <li><a href="Favorites.html" >Favorites</a></li>
               </ul>
             </div>
-			<table class="routeBox" style="width: 100vw;">
-				<tr>
-					<td colspan="2">Route:</td>
-                </tr>
-            <tr>
-    	        <td>
-                    <div>
-                        <select id="MainMobileContent_routeList" class="dropList" style="width:85vw;">
-                        </select>
-                    </div>
-                </td>
-					<td><div class="wait"><img id="routeWait" class="hidden wait" src="img/circle.gif" alt="Please wait"/></div></td>
-				</tr>
-				<tr>
-					<td colspan="2">Direction:</td>
-				</tr>	
-                <tr>
-                    	<td><select id="MainMobileContent_directionList" class="dropList" style="width:85vw;">
-                            </select>
-                        </td>
-					<td><div class="wait"><img id="directionWait" class="hidden wait" src="img/circle.gif" alt="Please wait"/></div></td>
-				</tr>
-
-				<tr>
-					<td colspan="2">Stop:</td>
-				</tr>
-                <tr>
-                    <td><select id="MainMobileContent_stopList" class="dropList" style="width:85vw;">
-                        </select>
-                    </td>
-					<td><div class="wait"><img id="stopWait" class="hidden wait" src="img/circle.gif" alt="Please wait"/></div></td>
-				</tr>
-			</table>
+            <div>
+                <ul id="lstFaves" data-role="listview">
+                </ul>
+            </div>
 		</div>
 	<!-- Templates for stop times-->
 	<script id="errorTemplate" type="text/x-jquery-tmpl">
@@ -68,8 +35,6 @@
 	</script><script id="stopTemplate" type="text/x-jquery-tmpl">
 		<div id="resultBox" class="resultBox">
 			<h2>{{:heading}}</h2>
-            <h2 style="text-align:center;"><button onclick="saveFavorites();" style="border:none; background-color:green; color:black;">&#x271A; Add to favorites</button></h2>
-            <span id="message"></span>
 			<table>
 				{{for stops[0].crossings}}
 				<tr>

@@ -27,7 +27,7 @@ body {
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
-    background-color: #CCC;
+    background-color: #9fa6b0;
 }
 
 div#fullpage {
@@ -35,6 +35,62 @@ div#fullpage {
 	height: 100%;
 	margin: 0;
 	padding: 0;
+}
+
+a.langOption{
+    color: white;
+    text-decoration: none;
+}
+
+a.langOption:hover
+{
+    color: #fff;
+}
+
+a
+{
+    color: #333;
+    text-decoration: none;
+}
+
+/*a.linklocal:link
+{
+    color: #333;    
+}*/
+
+/* visited link */
+a:visited
+{
+    color: #333;
+}
+
+/* mouse over link */
+a:hover
+{
+    color: #333;
+}
+
+/* selected link */
+a:active
+{
+    color: #333;
+} 
+
+h4.selectLanguage {
+    margin: 0 0 10px 0;
+    text-decoration: none;
+    text-shadow: none;
+    padding: 5px 0 5px 0;
+    background-color: #00468c;
+}
+
+h3 {
+margin: 0;
+}
+
+ul {
+    list-style: none;
+    padding: 0 10px 0 10px;
 }
 
 /* Landscape layout (with min-width) */
@@ -130,9 +186,8 @@ h1, h2
 {
 	margin-left: auto; margin-right: auto;
 	text-align: center;
-	color: #f14e80;
-	border-bottom: 2px solid #2d3437;
-	text-shadow: 1px 1px 1px #000;
+	color: #000;
+	text-shadow: 0px 0px 0px #000;
 }
 
 select
