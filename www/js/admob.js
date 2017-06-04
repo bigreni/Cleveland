@@ -55,8 +55,8 @@
 
    function checkFirstUse()
     {
-		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});        askRating();
-        initApp();
+		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});        initApp();
+        askRating();
     }
 
 function askRating()
