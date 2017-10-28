@@ -64,7 +64,7 @@
             <tr>
     	        <td>
                     <div>
-                        <select id="MainMobileContent_routeList" class="dropList" style="width:85vw;">
+                        <select id="MainMobileContent_routeList" class="dropList" style="width:90vw;">
                         </select>
                     </div>
                 </td>
@@ -74,7 +74,7 @@
 					<td colspan="2">Direction:</td>
 				</tr>	
                 <tr>
-                    	<td><select id="MainMobileContent_directionList" class="dropList" style="width:85vw;">
+                    	<td><select id="MainMobileContent_directionList" class="dropList" style="width:90vw;">
                             </select>
                         </td>
 					<td><div class="wait"><img id="directionWait" class="hidden wait" src="img/circle.gif" alt="Please wait"/></div></td>
@@ -84,7 +84,7 @@
 					<td colspan="2">Stop:</td>
 				</tr>
                 <tr>
-                    <td><select id="MainMobileContent_stopList" class="dropList" style="width:85vw;">
+                    <td><select id="MainMobileContent_stopList" class="dropList" style="width:90vw;">
                         </select>
                     </td>
 					<td><div class="wait"><img id="stopWait" class="hidden wait" src="img/circle.gif" alt="Please wait"/></div></td>
@@ -97,7 +97,7 @@
 	</script><script id="stopTemplate" type="text/x-jquery-tmpl">
 		<div id="resultBox" class="resultBox">
 			<h2>{{:heading}}</h2>
-            <h2 style="text-align:center;"><button onclick="saveFavorites();" style="border:none; background-color:green; color:black;">&#x271A; Add to favorites</button></h2>
+            <h2 style="text-align:center;"><button onclick="saveFavorites();" style="border:none; background-color:green; color:black;">&#x2764; Add to favorites</button></h2>
             <span id="message"></span>
 			<table>
 				{{for stops[0].crossings}}
