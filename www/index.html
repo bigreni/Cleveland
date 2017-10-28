@@ -12,13 +12,42 @@
 <link rel="stylesheet" href="css/jquery.sidr.dark.min.css">
 <script src="js/jquery.sidr.min.js"></script>
 <title>COTA Arrivals</title>
+    <style>
+            /* Hide all the app pages until jQuery Mobile inits to
+               avoid the Flash of Unstyled Content */
+            .splashscreen {
+                width: 100%;
+                height: 100%;
+                border: 0;
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index:1001;
+                background: lightgrey;
+                text-shadow: none;
+                color: black;
+            }
+        </style>
 </head>
-<body onload="onLoad();">
+<body>
     <script type="text/javascript" src="cordova.js"></script>
     <script type="text/javascript" src="js/admob.js"></script>
     <script type="text/javascript" src="js/favorites.js"></script>
 	<script type="text/javascript" src="js/jsrender.min.js"></script>
-	<script type="text/javascript" src="js/jquery.cookie.js"></script>    <div id="fullpage" data-role="page">
+	<script type="text/javascript" src="js/jquery.cookie.js"></script>    <div id="screen" class="splashscreen" style="display: none"></div>
+        <script>
+            // Show the splash screen with a loading message
+            // Handler to hide the message when the loading stops
+            window.onload = function () {
+                onLoad();
+                //document.getElementById("screen").style.display = 'none';
+            };
+            document.getElementById("screen").innerHTML = 'Loading...';
+            document.getElementById("screen").style.display = 'block';
+        </script> 
+    <div id="fullpage" data-role="page">
 		<div id="contentBox" class="box">
                  <h3><a id="simplemenu" href="#sidr" style="font-size: xx-large; background-color: #d31145; padding: 5px">&#9776;</a>
                RTA Live Arrival Times</h3>
