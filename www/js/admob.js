@@ -42,8 +42,9 @@
         document.addEventListener('onAdLoaded', function (data) { });
         document.addEventListener('onAdPresent', function (data) { });
         document.addEventListener('onAdLeaveApp', function (data) { });
-        document.addEventListener('onAdDismiss', function (data) { });
+        document.addEventListener('onAdDismiss', function (data) { 
             document.getElementById('screen').style.display = 'none';     
+        });
     }
 
     function createSelectedBanner() {
