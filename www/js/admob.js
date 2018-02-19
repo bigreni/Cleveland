@@ -57,7 +57,10 @@
 
    function checkFirstUse()
     {
-		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});        initApp();
+		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});        window.ga.startTrackerWithId('UA-88579601-10', 1, function(msg) {
+            window.ga.trackView('Home');
+        });  
+        initApp();
         askRating();
         //document.getElementById('screen').style.display = 'none';     
     }
@@ -76,6 +79,12 @@ function askRating()
 };
  
 AppRate.promptForRating(false);
+}
+
+function loadFaves()
+{
+    window.location = "Favorites.html";
+    window.ga.trackView('Favorites');
 }
 
 var	TransitMaster =	TransitMaster || {};
@@ -153,6 +162,7 @@ TransitMaster.StopTimes = function (options) {
             success: function (msg) {
                 if (msg.d == null || msg.d.length == 0) {
                     $("#MainMobileContent_routeList").text("No routes found");
+                    displayError("RTA is currently having issues with real-time arrivals. We are working on fixing the issue. Thank you for your patience.");
                     return;
                 }
 
@@ -207,6 +217,7 @@ TransitMaster.StopTimes = function (options) {
             success: function (msg) {
                 if (msg.d == null || msg.d.length == 0) {
                     $("#MainMobileContent_directionList").text("No directions found");
+                    displayError("RTA is currently having issues with real-time arrivals. We are working on fixing the issue. Thank you for your patience.");
                     return;
                 }
 
@@ -252,6 +263,7 @@ TransitMaster.StopTimes = function (options) {
             success: function (msg) {
                 if (msg.d == null || msg.d.length == 0) {
                     $("#MainMobileContent_stopList").text("No stops	found");
+                    displayError("RTA is currently having issues with real-time arrivals. We are working on fixing the issue. Thank you for your patience.");
                     return;
                 }
                 $(list).empty();
@@ -262,7 +274,7 @@ TransitMaster.StopTimes = function (options) {
                     //$(list).get(0).options[$(list).get(0).options.length] = new Option(item.name, item.id);
                 });
 
-                 checkListCookie("stop", "MainMobileContent_stopList");
+                checkListCookie("stop", "MainMobileContent_stopList");
 
                 initialView = false;
             },
@@ -277,59 +289,56 @@ TransitMaster.StopTimes = function (options) {
         $(".dropList").select2();
     }
 
-	function getArrivalTimes(refresh) {
-		if (!refresh)
-		{
-			reset(true);
-			$("#stopWait").removeClass("hidden");
-		}
+    function getArrivalTimes(refresh) {
+        if (!refresh) {
+            reset(true);
+            $("#stopWait").removeClass("hidden");
+        }
 
-		$.ajax({
-			type: "POST",
-			url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getStopTimes",
-			data: "{routeID: " + $("#MainMobileContent_routeList").val() + ",	directionID: " + $("#MainMobileContent_directionList").val() + ",	stopID:	" + $("#MainMobileContent_stopList").val() + ", useArrivalTimes:	" + settings.arrivals + "}",
-			contentType: "application/json;	charset=utf-8",
-			dataType: "json",
-			success: function (msg) {
-				if (msg.d == null)
-				{
-					msg.d = { errorMessage: "Sorry, an	internal error has occurred" };
-				}
+        $.ajax({
+            type: "POST",
+            url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getStopTimes",
+            data: "{routeID: " + $("#MainMobileContent_routeList").val() + ",	directionID: " + $("#MainMobileContent_directionList").val() + ",	stopID:	" + $("#MainMobileContent_stopList").val() + ", useArrivalTimes:	" + settings.arrivals + "}",
+            contentType: "application/json;	charset=utf-8",
+            dataType: "json",
+            success: function (msg) {
+                if (msg.d == null) {
+                    msg.d = { errorMessage: "RTA is currently having issues with real-time arrivals. We are working on fixing the issue. Thank you for your patience." };
+                }
 
-				if (msg.d.errorMessage == null && (msg.d.stops == null || msg.d.stops[0].crossings == null || msg.d.stops[0].crossings.length == 0))
-					msg.d.errorMessage = "No upcoming stop times found";
+                if (msg.d.errorMessage == null && (msg.d.stops == null || msg.d.stops[0].crossings == null || msg.d.stops[0].crossings.length == 0))
+                    msg.d.errorMessage = "No upcoming stop times found";
 
-				if (msg.d.errorMessage != null)
-				{
-					displayError(msg.d.errorMessage);
-					return;
-				}
+                if (msg.d.errorMessage != null) {
+                    displayError(msg.d.errorMessage);
+                    return;
+                }
 
-				var count = msg.d.stops[0].crossings.length;
-				msg.d.heading = "Next " + (count > 1 ? count : "") + " Vehicle " + settings.headingLabel + (count > 1 ? "s" : "");
+                var count = msg.d.stops[0].crossings.length;
+                msg.d.heading = "Next " + (count > 1 ? count : "") + " Vehicle " + settings.headingLabel + (count > 1 ? "s" : "");
 
-				var result = $("#stopTemplate").render(msg.d);
+                var result = $("#stopTemplate").render(msg.d);
 
-				if (refresh)
-					$("#resultBox").html($(result).html());
-				else
-					displayResultsBox(result);
+                if (refresh)
+                    $("#resultBox").html($(result).html());
+                else
+                    displayResultsBox(result);
 
-				if (!refresh)
-					timer = window.setInterval(function () {
-						getArrivalTimes(true);
-					}, 30000);
-			},
-			error: function () {
-				displayError("Failed to	load stop times");
-			},
-			complete: function (jqXHR, textStatus) {
-				$("#stopWait").addClass("hidden");
-			}
-		});
+                if (!refresh)
+                    timer = window.setInterval(function () {
+                        getArrivalTimes(true);
+                    }, 30000);
+            },
+            error: function () {
+                displayError("Failed to	load stop times");
+            },
+            complete: function (jqXHR, textStatus) {
+                $("#stopWait").addClass("hidden");
+            }
+        });
         $("span").remove();
         $(".dropList").select2();
-	}
+    }
 
     function displayError(error) {
         reset(true);

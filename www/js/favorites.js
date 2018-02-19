@@ -55,31 +55,32 @@ function removeFavorite(index)
 
 function loadArrivals(route,direction,stop)
 {
-		$.ajax({
-			type: "POST",
-			url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getStopTimes",
-			data: "{routeID: " + route + ",	directionID: " + direction + ",	stopID:	" + stop + ", useArrivalTimes: true}",
-			contentType: "application/json;	charset=utf-8",
-			dataType: "json",
-			success: function (msg) {
-				if (msg.d == null)
-				{
-					msg.d = { errorMessage: "Sorry, an	internal error has occurred" };
-				}
+    $.ajax({
+        type: "POST",
+        url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getStopTimes",
+        data: "{routeID: " + route + ",	directionID: " + direction + ",	stopID:	" + stop + ", useArrivalTimes: true}",
+        contentType: "application/json;	charset=utf-8",
+        dataType: "json",
+        success: function (msg) {
+            if (msg.d == null) {
+                msg.d = { errorMessage: "RTA is currently having issues with real-time arrivals. We are working on fixing the issue. Thank you for your patience." };
+            }
 
-				if (msg.d.errorMessage == null && (msg.d.stops == null || msg.d.stops[0].crossings == null || msg.d.stops[0].crossings.length == 0))
-					msg.d.errorMessage = "No upcoming stop times found";
+            if (msg.d.errorMessage == null && (msg.d.stops == null || msg.d.stops[0].crossings == null || msg.d.stops[0].crossings.length == 0)) {
+                msg.d.errorMessage = "No upcoming stop times found";
+                displayError(msg.d.errorMessage);
+                return;
+            }
 
-				if (msg.d.errorMessage != null)
-				{
-					displayError(msg.d.errorMessage);
-					return;
-				}
+            if (msg.d.errorMessage != null) {
+                displayError("RTA is currently having issues with real-time arrivals. We are working on fixing the issue. Thank you for your patience.");
+                return;
+            }
 
-				var count = msg.d.stops[0].crossings.length;
-				msg.d.heading = "Next " + (count > 1 ? count : "") + " Vehicle " + "Arrival" + (count > 1 ? "s" : "");
+            var count = msg.d.stops[0].crossings.length;
+            msg.d.heading = "Next " + (count > 1 ? count : "") + " Vehicle " + "Arrival" + (count > 1 ? "s" : "");
 
-				var result = $("#stopTemplate").render(msg.d);
+            var result = $("#stopTemplate").render(msg.d);
 
             //if (refresh)
             //    $("#resultBox").html($(result).html());

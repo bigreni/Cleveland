@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget 
 id="com.cleveland.withads" 
-version="1.0.2"
-versionCode = "5" 
+version="1.0.3"
+versionCode = "6" 
 xmlns="http://www.w3.org/ns/widgets"
 xmlns:gap="http://phonegap.com/ns/1.0"
 >
@@ -39,6 +39,7 @@ xmlns:gap="http://phonegap.com/ns/1.0"
     <gap:plugin name="cordova-plugin-whitelist" source="npm"/>
     <gap:plugin name="cordova-plugin-dialogs" source="npm"/>
     <gap:plugin name="cordova-plugin-apprate" source="npm"/>
+    <gap:plugin name="cordova-plugin-google-analytics" source="npm"/>
     <allow-navigation href="http://*/*" />
     <allow-navigation href="https://*/*" />
     <allow-navigation href="data:*" />
@@ -58,6 +59,7 @@ xmlns:gap="http://phonegap.com/ns/1.0"
     <icon gap:platform="ios" height="152" src="res/icon/ios/Icon-App-76x76@2x.png" width="152" />
     <icon gap:platform="ios" height="50" src="res/icon/ios/Icon-Small-50.png" width="50" />
     <icon gap:platform="ios" height="100" src="res/icon/ios/Icon-Small-50@2x.png" width="100" />
+    <icon gap:platform="ios" height="40" src="res/icon/ios/Icon40.png" width="40" />
     <icon gap:platform="webos" src="res/icon/webos/icon-64.png" />
     <icon gap:platform="winphone" src="res/icon/windows-phone/icon-48.png" />
     <icon gap:platform="winphone" gap:role="background" src="res/icon/windows-phone/icon-173-tile.png" />
