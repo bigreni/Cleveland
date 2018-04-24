@@ -15,27 +15,6 @@ function loadFavorites()
     }
 }
 
-function saveFavorites()
-{
-    var favStop = localStorage.getItem("Favorites");
-    var newFave = $('#MainMobileContent_routeList option:selected').val() + ">" + $("#MainMobileContent_directionList option:selected").val() + ">" + $("#MainMobileContent_stopList option:selected").val() + ":" + $('#MainMobileContent_routeList option:selected').text() + " > " + $("#MainMobileContent_directionList option:selected").text() + " > " + $("#MainMobileContent_stopList option:selected").text();
-        if (favStop == null)
-        {
-            favStop = newFave;
-        }   
-        else if(favStop.indexOf(newFave) == -1)
-        {
-            favStop = favStop + "|" + newFave;               
-        }
-        else
-        {
-            $("#message").text('Stop is already favorited!!');
-            return;
-        }
-        localStorage.setItem("Favorites", favStop);
-        $("#message").text('Stop added to favorites!!');
-}
-
 function removeFavorite(index)
 {
     var favStop = localStorage.getItem("Favorites");

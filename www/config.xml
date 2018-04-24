@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget 
 id="com.cleveland.withads" 
-version="1.0.4"
-versionCode = "7" 
+version="1.0.5"
+versionCode = "8" 
 xmlns="http://www.w3.org/ns/widgets"
 xmlns:gap="http://phonegap.com/ns/1.0"
 >
@@ -28,6 +28,7 @@ xmlns:gap="http://phonegap.com/ns/1.0"
     <preference name="exit-on-suspend" value="false" />
     <preference name="SplashScreenDelay" value="0"/>
     <preference name="auto-hide-splash-screen" value="true" />
+    <preference name="DisallowOverscroll" value ="true" />
     <preference name="disable-cursor" value="false" />
     <preference name="android-minSdkVersion" value="14" />
     <preference name="android-installLocation" value="auto" />
