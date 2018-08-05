@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="format-detection" content="telephone=no" />
 <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+<link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
 <!--<link rel="stylesheet" type="text/css" href="css/index.css" />-->
 <link rel="stylesheet" type="text/css" href="http://bigreni.com/css/cleveland/index.css" />
 <!-- Include the jQuery library -->
@@ -34,8 +35,13 @@
 </head>
 <body>
     <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript">
+        var cachebuster = Math.round(new Date().getTime() / 1000);
+        //document.write('<script type="text/javascript" src="http://bigreni.com/js/cleveland/main.js?cb=' +cachebuster+'"></scr' + 'ipt>');
+        document.write('<script type="text/javascript" src="js/main.js?cb=' +cachebuster+'"></scr' + 'ipt>');
+    </script>	
     <!--<script type="text/javascript" src="js/main.js"></script>-->
-    <script type="text/javascript" src="http://bigreni.com/js/cleveland/main.js"></script>
+    <!--<script type="text/javascript" src="http://bigreni.com/js/cleveland/main.js"></script>-->
 	<script type="text/javascript" src="js/jsrender.min.js"></script>
 	<script type="text/javascript" src="js/jquery.cookie.js"></script>
     <div id="screen" class="splashscreen" style="display: none"></div>
@@ -51,14 +57,13 @@
         </script> 
     <div id="fullpage" data-role="page">
 		<div id="contentBox" class="box">
-                 <h3><a id="simplemenu" href="#sidr" style="font-size: xx-large; background-color: #d31145; padding: 5px">&#9776;</a>
-               RTA Live Arrival Times</h3>
-            <div id="sidr">
+                 <h3>RTA Live Arrival Times</h3>
+            <!--<div id="sidr">
               <ul>
                 <li><a href="index.html" >Arrivals</a></li>
                 <li><a href="javascript:loadFaves();" >Favorites</a></li>
               </ul>
-            </div>
+            </div>-->
 			<table class="routeBox" style="width: 100vw;">
 				<tr>
 					<td colspan="2">Route:</td>
@@ -103,36 +108,44 @@
             <span id="message"></span>
 			<table>
 				{{for stops[0].crossings}}
-				<tr>
-					<td class="stopTime">
-						{{if predTime}}
-							{{if countdown}} 
-								{{:countdown}}
+					<tr>
+						<td class="stopTime">
+							{{if predTime}}
+								{{if countdown}} 
+									{{:countdown}}
+								{{else}}
+									{{:predTime}} {{:predPeriod}}
+								{{/if}}
+								{{if #parent.parent.parent.data.showScheduled == true}}
+									<p class="stopLabel">Scheduled at {{:schedTime}} {{:schedPeriod}}</p>
+								{{/if}}
 							{{else}}
-								{{:predTime}} {{:predPeriod}}
-							{{/if}}
-							{{if #parent.parent.parent.data.showScheduled == true}}
-								<p class="stopLabel">Scheduled at {{:schedTime}} {{:schedPeriod}}</p>
-							{{/if}}
-						{{else}}
-							{{:schedTime}} {{:schedPeriod}}
+								{{:schedTime}} {{:schedPeriod}}
 								{{if cancelled}}
 									<p class="stopCancelledLabel">Cancelled</p>
 								{{else}}
-							<p class="stopLabel">Scheduled time shown</p>
-						{{/if}}
+									<p class="stopLabel">Scheduled time shown</p>
+								{{/if}}
 							{{/if}}
-					</td>
-					{{if destination}}
-						<td class="stopTime">{{:destination}}</td>
-					{{/if}}
-				</tr>
+						</td>
+						{{if destination}}
+							<td class="stopTime">{{:destination}}</td>
+						{{/if}}
+					</tr>
 				{{/for}}
 				<tr>
 					<td class="timeLabel" colspan="2">Last updated at {{:updateTime}} {{:updatePeriod}}</td>
 				</tr>
-			</table>
-		</div>
-	</script></div>
+			</table>		</div>
+	</script><div id="footer">
+  <div class="col-xs-12 navbar-inverse navbar-fixed-bottom">
+  <div class="row" id="bottomNav">
+    <div class="col-xs-6 text-center"><a href="index.html"><i class="glyphicon glyphicon-time"></i><br>Arrivals</a></div>
+    <div class="col-xs-6 text-center"><a href="javascript:loadFaves();"><i class="glyphicon glyphicon glyphicon-star-empty"></i><br>Favorites</a></div>
+  </div>
+  </div>
+</div>
+
+        <script type='text/javascript' src="js/bootstrap.min.js"></script></div>
 </body>
 </html>

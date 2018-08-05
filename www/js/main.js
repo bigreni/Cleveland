@@ -62,7 +62,7 @@
         });  
         initApp();
         askRating();
-        //document.getElementById('screen').style.display = 'none';     
+        document.getElementById('screen').style.display = 'none';     
     }
 
 function askRating()
@@ -327,14 +327,15 @@ TransitMaster.StopTimes = function (options) {
                     msg.d = { errorMessage: "RTA is currently having issues with real-time arrivals. We are working on fixing the issue. Thank you for your patience." };
                 }
 
-                if (msg.d.errorMessage == null && (msg.d.stops == null || msg.d.stops[0].crossings == null || msg.d.stops[0].crossings.length == 0))
-                    msg.d.errorMessage = "No upcoming stop times found";
+                if (msg.d.errorMessage == null && (msg.d.routeStops == null || msg.d.routeStops[0].stops == null || msg.d.routeStops[0].stops[0].crossings == null || msg.d.routeStops[0].stops[0].crossings.length == 0))
+                    msg.d.errorMessage = "No upcoming stop times";
 
                 if (msg.d.errorMessage != null) {
                     displayError(msg.d.errorMessage);
                     return;
                 }
 
+                msg.d.stops = msg.d.routeStops[0].stops;
                 var count = msg.d.stops[0].crossings.length;
                 msg.d.heading = "Next " + (count > 1 ? count : "") + " Vehicle " + settings.headingLabel + (count > 1 ? "s" : "");
 
