@@ -34,10 +34,12 @@ function removeFavorite(index)
 
 function loadArrivals(route,direction,stop)
 {
+    var sInfo = stop;
+	var s_tp = sInfo.split("_");
     $.ajax({
         type: "POST",
         url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getStopTimes",
-        data: "{routeID: " + route + ",	directionID: " + direction + ",	stopID:	" + stop + ", useArrivalTimes: true}",
+        data: "{routeID: " + route + ",	directionID: " + direction + ",	stopID:	" + s_tp[0] + ", tpID:	" + s_tp[1] + ", useArrivalTimes:true}",
         contentType: "application/json;	charset=utf-8",
         dataType: "json",
         success: function (msg) {

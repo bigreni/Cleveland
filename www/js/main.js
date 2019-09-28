@@ -2,7 +2,7 @@
         if ((/(ipad|iphone|ipod|android|windows phone)/i.test(navigator.userAgent))) {
             document.addEventListener('deviceready', checkFirstUse, false);
         } else {
-            checkFirstUse();
+            notFirstUse();
         }
     }
     var admobid = {};
@@ -57,12 +57,30 @@
 
    function checkFirstUse()
     {
-		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});        window.ga.startTrackerWithId('UA-88579601-10', 1, function(msg) {
+		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});        initApp();
+        askRating();
+        clearFaves();
+        //document.getElementById('screen').style.display = 'none';     
+        window.ga.startTrackerWithId('UA-88579601-10', 1, function(msg) {
             window.ga.trackView('Home');
         });  
-        initApp();
-        askRating();
+
+    }
+
+   function notFirstUse()
+    {
+		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});
         document.getElementById('screen').style.display = 'none';     
+    }
+
+    function clearFaves()
+    {
+            var appVersion = localStorage.getItem("Oldversion");
+            if (appVersion == null)
+            {
+                localStorage.removeItem("Favorites");
+                localStorage.setItem("Oldversion", 1);
+            }   
     }
 
 function askRating()
@@ -90,7 +108,7 @@ function loadFaves()
 function saveFavorites()
 {
     var favStop = localStorage.getItem("Favorites");
-    var newFave = $('#MainMobileContent_routeList option:selected').val() + ">" + $("#MainMobileContent_directionList option:selected").val() + ">" + $("#MainMobileContent_stopList option:selected").val() + ":" + $('#MainMobileContent_routeList option:selected').text() + " > " + $("#MainMobileContent_directionList option:selected").text() + " > " + $("#MainMobileContent_stopList option:selected").text();
+    var newFave = $('#MainMobileContent_routeList option:selected').val() + ">" + $("#MainMobileContent_directionList option:selected").val() + ">'" + $("#MainMobileContent_stopList option:selected").val() + "':" + $('#MainMobileContent_routeList option:selected').text() + " > " + $("#MainMobileContent_directionList option:selected").text() + " > " + $("#MainMobileContent_stopList option:selected").text();
         if (favStop == null)
         {
             favStop = newFave;
@@ -291,7 +309,7 @@ TransitMaster.StopTimes = function (options) {
                 $(list).get(0).options[$(list).get(0).options.length] = new Option("Select a stop...", "");
 
                 $.each(msg.d, function (index, item) {
-                    $(list).append($("<option />").val(item.id).text(item.name));
+                    $(list).append($("<option />").val(item.id + "_" + item.tp).text(item.name));
                     //$(list).get(0).options[$(list).get(0).options.length] = new Option(item.name, item.id);
                 });
 
@@ -316,10 +334,13 @@ TransitMaster.StopTimes = function (options) {
             $("#stopWait").removeClass("hidden");
         }
 
+        var sInfo = $("#MainMobileContent_stopList").val();
+		var s_tp = sInfo.split("_");
+
         $.ajax({
             type: "POST",
             url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getStopTimes",
-            data: "{routeID: " + $("#MainMobileContent_routeList").val() + ",	directionID: " + $("#MainMobileContent_directionList").val() + ",	stopID:	" + $("#MainMobileContent_stopList").val() + ", useArrivalTimes:	" + settings.arrivals + "}",
+            data: "{routeID: " + $("#MainMobileContent_routeList").val() + ",	directionID: " + $("#MainMobileContent_directionList").val() + ",	stopID:	" + s_tp[0] + ",	tpID:	" + s_tp[1] + ", useArrivalTimes:	" + settings.arrivals + "}",
             contentType: "application/json;	charset=utf-8",
             dataType: "json",
             success: function (msg) {
