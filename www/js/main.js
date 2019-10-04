@@ -61,10 +61,9 @@
         askRating();
         clearFaves();
         //document.getElementById('screen').style.display = 'none';     
-        window.ga.startTrackerWithId('UA-88579601-10', 1, function(msg) {
-            window.ga.trackView('Home');
-        });  
-
+        //window.ga.startTrackerWithId('UA-88579601-10', 1, function(msg) {
+        //    window.ga.trackView('Home');
+        //});  
     }
 
    function notFirstUse()
@@ -102,7 +101,7 @@ AppRate.promptForRating(false);
 function loadFaves()
 {
     window.location = "Favorites.html";
-    window.ga.trackView('Favorites');
+    //window.ga.trackView('Favorites');
 }
 
 function saveFavorites()
