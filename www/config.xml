@@ -4,6 +4,7 @@ id="com.cleveland.withads"
 version="1.0.8"
 versionCode = "10" 
 xmlns="http://www.w3.org/ns/widgets"
+xmlns:android="http://schemas.android.com/apk/res/android"
 xmlns:gap="http://phonegap.com/ns/1.0"
 >
     <name>RTA Bus Tracker</name>
