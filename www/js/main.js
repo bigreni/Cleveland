@@ -57,10 +57,10 @@
 
    function checkFirstUse()
     {
-		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});        initApp();
-        askRating();
+		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});        //initApp();
+        //askRating();
         clearFaves();
-        //document.getElementById('screen').style.display = 'none';     
+        document.getElementById('screen').style.display = 'none';     
         //window.ga.startTrackerWithId('UA-88579601-10', 1, function(msg) {
         //    window.ga.trackView('Home');
         //});  
