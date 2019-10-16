@@ -52,15 +52,24 @@
     }
 
     function loadInterstitial() {
-        AdMob.prepareInterstitial({ adId: admobid.interstitial, isTesting: false, autoShow: true });
+        if ((/(android|windows phone)/i.test(navigator.userAgent))) {
+            //AdMob.prepareInterstitial({ adId: admobid.interstitial, isTesting: false, autoShow: true });
+            document.getElementById("screen").style.display = 'none';     
+        } else if ((/(ipad|iphone|ipod)/i.test(navigator.userAgent))) {
+            AdMob.prepareInterstitial({ adId: admobid.interstitial, isTesting: false, autoShow: true });
+            //document.getElementById("screen").style.display = 'none';     
+        } else
+        {
+            document.getElementById("screen").style.display = 'none';     
+        }
     }
 
    function checkFirstUse()
     {
-		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});        //initApp();
-        //askRating();
+		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});        initApp();
+        askRating();
         clearFaves();
-        document.getElementById('screen').style.display = 'none';     
+        //document.getElementById('screen').style.display = 'none';     
         //window.ga.startTrackerWithId('UA-88579601-10', 1, function(msg) {
         //    window.ga.trackView('Home');
         //});  
