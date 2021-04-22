@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+<link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet"/>
+<script type="text/javascript">
+    var cachebuster = Math.round(new Date().getTime() / 1000);
+    //document.write('<link rel="stylesheet" type="text/css" href="css/index.css?cb=' +cachebuster+'"></li' + 'nk>');
+    document.write('<link rel="stylesheet" type="text/css" href="https://s3.us-east-2.amazonaws.com/bigreni.com/css/cleveland/index.css?cb=' +cachebuster+'"></li' + 'nk>');
+</script>
+<!--<link rel="stylesheet" type="text/css" href="css/index.css" />-->
+<!--<link rel="stylesheet" type="text/css" href="http://bigreni.com/css/cleveland/index.css?v=1.0" />-->
+<!-- Include the jQuery library -->
+<script src="https://code.jquery.com/jquery-3.4.0.min.js"></script>
+<link href="css/select2.min.css" rel="stylesheet" />
+<script src="js/select2.min.js"></script>
+<link rel="stylesheet" href="css/jquery.sidr.dark.min.css">
+<script src="js/jquery.sidr.min.js"></script>
+<title>COTA Arrivals</title>
+    <style>
+            /* Hide all the app pages until jQuery Mobile inits to
+               avoid the Flash of Unstyled Content */
+            .splashscreen {
+                width: 100%;
+                height: 100%;
+                border: 0;
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index:1001;
+                background: lightgrey;
+                text-shadow: none;
+                color: black;
+            }
+        </style>
+</head>
+<body>
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript">
+        var cachebuster = Math.round(new Date().getTime() / 1000);
+        document.write('<script type="text/javascript" src="https://s3.us-east-2.amazonaws.com/bigreni.com/js/cleveland/main.js?cb=' +cachebuster+'"></scr' + 'ipt>');
+        //document.write('<script type="text/javascript" src="js/main.js?cb=' +cachebuster+'"></scr' + 'ipt>');
+    </script>	
+    <!--<script type="text/javascript" src="js/main.js"></script>-->
+    <!--<script type="text/javascript" src="http://bigreni.com/js/cleveland/main.js"></script>-->
+	<script type="text/javascript" src="js/jsrender.min.js"></script>
+	<script type="text/javascript" src="js/jquery.cookie.js"></script>
+    <div id="screen" class="splashscreen" style="display: none"></div>
+        <script>
+            // Show the splash screen with a loading message
+            // Handler to hide the message when the loading stops
+            window.onload = function () {
+                onLoad();
+                //document.getElementById("screen").style.display = 'none';
+            };
+            document.getElementById("screen").innerHTML = 'Loading...';
+            document.getElementById("screen").style.display = 'block';
+        </script> 
+    <div id="fullpage" data-role="page">
+		<div id="contentBox" class="box">
+                 <h3>RTA Live Arrival Times</h3>
+            <!--<div id="sidr">
+              <ul>
+                <li><a href="index.html" >Arrivals</a></li>
+                <li><a href="javascript:loadFaves();" >Favorites</a></li>
+              </ul>
+            </div>-->
+			<table class="routeBox" style="width: 100vw;">
+				<tr>
+					<td colspan="2">Route:</td>
+                </tr>
+            <tr>
+    	        <td>
+                    <div>
+                        <select id="MainMobileContent_routeList" class="dropList" style="width:90vw;">
+                        </select>
+                    </div>
+                </td>
+					<td><div class="wait"><img id="routeWait" class="hidden wait" src="img/circle.gif" alt="Please wait"/></div></td>
+				</tr>
+				<tr>
+					<td colspan="2">Direction:</td>
+				</tr>	
+                <tr>
+                    	<td><select id="MainMobileContent_directionList" class="dropList" style="width:90vw;">
+                            </select>
+                        </td>
+					<td><div class="wait"><img id="directionWait" class="hidden wait" src="img/circle.gif" alt="Please wait"/></div></td>
+				</tr>
+
+				<tr>
+					<td colspan="2">Stop:</td>
+				</tr>
+                <tr>
+                    <td><select id="MainMobileContent_stopList" class="dropList" style="width:90vw;">
+                        </select>
+                    </td>
+					<td><div class="wait"><img id="stopWait" class="hidden wait" src="img/circle.gif" alt="Please wait"/></div></td>
+				</tr>
+			</table>
+		</div>
+	<!-- Templates for stop times-->
+	<script id="errorTemplate" type="text/x-jquery-tmpl">
+		<div id="resultBox" class="errorBox"><table><tr><td>{{:error}}</td></tr></table></div>
+	</script><script id="stopTemplate" type="text/x-jquery-tmpl">
+		<div id="resultBox" class="resultBox">
+			<h2>{{:heading}}</h2>
+            <h2 style="text-align:center;"><button onclick="saveFavorites();" style="border:none; background-color:green; color:black;">&#x2764; Add to favorites</button></h2>
+            <span id="message"></span>
+			<table>
+				{{for stops[0].crossings}}
+					<tr>
+						<td class="stopTime">
+							{{if predTime}}
+								{{if countdown}} 
+									{{:countdown}}
+								{{else}}
+									{{:predTime}} {{:predPeriod}}
+								{{/if}}
+								{{if #parent.parent.parent.data.showScheduled == true}}
+									<p class="stopLabel">Scheduled at {{:schedTime}} {{:schedPeriod}}</p>
+								{{/if}}
+							{{else}}
+								{{:schedTime}} {{:schedPeriod}}
+								{{if cancelled}}
+									<p class="stopCancelledLabel">Cancelled</p>
+								{{else}}
+									<p class="stopLabel">Scheduled time shown</p>
+								{{/if}}
+							{{/if}}
+						</td>
+						{{if destination}}
+							<td class="stopTime">{{:destination}}</td>
+						{{/if}}
+					</tr>
+				{{/for}}
+				<tr>
+					<td class="timeLabel" colspan="2">Last updated at {{:updateTime}} {{:updatePeriod}}</td>
+				</tr>
+			</table>		</div>
+	</script><div id="footer">
+  <div class="col-xs-12 navbar-inverse navbar-fixed-bottom">
+  <div class="row" id="bottomNav">
+    <div class="col-xs-6 text-center"><a href="index.html"><i class="glyphicon glyphicon-time"></i><br>Arrivals</a></div>
+    <div class="col-xs-6 text-center"><a href="javascript:loadFaves();"><i class="glyphicon glyphicon glyphicon-star-empty"></i><br>Favorites</a></div>
+  </div>
+  </div>
+</div>
+
+        <script type='text/javascript' src="js/bootstrap.min.js"></script></div>
+</body>
+</html>
