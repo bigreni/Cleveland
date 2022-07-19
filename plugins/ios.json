@@ -24,9 +24,6 @@
     "cordova-plugin-geolocation": {
       "GPS_REQUIRED": "true",
       "PACKAGE_NAME": "com.cleveland.withads"
-    },
-    "cordova-plugin-whitelist": {
-      "PACKAGE_NAME": "com.cleveland.withads"
     }
   },
   "dependent_plugins": {

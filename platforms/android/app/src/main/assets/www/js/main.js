@@ -39,9 +39,13 @@
         document.addEventListener('onAdFailLoad', function (data) {
             document.getElementById('screen').style.display = 'none';     
         });
-        document.addEventListener('onAdLoaded', function (data) { });
+        document.addEventListener('onAdLoaded', function (data) { 
+            document.getElementById('screen').style.display = 'none';     
+        });
         document.addEventListener('onAdPresent', function (data) { });
-        document.addEventListener('onAdLeaveApp', function (data) { });
+        document.addEventListener('onAdLeaveApp', function (data) { 
+            document.getElementById('screen').style.display = 'none';     
+        });
         document.addEventListener('onAdDismiss', function (data) { 
             document.getElementById('screen').style.display = 'none';     
         });
@@ -53,8 +57,8 @@
 
     function loadInterstitial() {
         if ((/(android|windows phone)/i.test(navigator.userAgent))) {
-            //AdMob.prepareInterstitial({ adId: admobid.interstitial, isTesting: false, autoShow: true });
-            document.getElementById("screen").style.display = 'none';     
+            AdMob.prepareInterstitial({ adId: admobid.interstitial, isTesting: true, autoShow: false });
+            //document.getElementById("screen").style.display = 'none';     
         } else if ((/(ipad|iphone|ipod)/i.test(navigator.userAgent))) {
             AdMob.prepareInterstitial({ adId: admobid.interstitial, isTesting: false, autoShow: true });
             //document.getElementById("screen").style.display = 'none';     
@@ -66,9 +70,10 @@
 
    function checkFirstUse()
     {
-		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});        initApp();
+		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});
+        initApp();
         askRating();
-        clearFaves();
+        //clearFaves();
         //document.getElementById('screen').style.display = 'none';     
         //window.ga.startTrackerWithId('UA-88579601-10', 1, function(msg) {
         //    window.ga.trackView('Home');
@@ -109,8 +114,8 @@ AppRate.promptForRating(false);
 
 function loadFaves()
 {
+    showAd();
     window.location = "Favorites.html";
-    //window.ga.trackView('Favorites');
 }
 
 function saveFavorites()
@@ -337,6 +342,9 @@ TransitMaster.StopTimes = function (options) {
     }
 
     function getArrivalTimes(refresh) {
+ 
+        showAd();
+ 
         if (!refresh) {
             reset(true);
             $("#stopWait").removeClass("hidden");
@@ -418,6 +426,18 @@ TransitMaster.StopTimes = function (options) {
             else
                 removeResultBox();
         }
+    }
+
+    function showAd()
+    {
+        document.getElementById("screen").style.display = 'block';     
+        if ((/(android|windows phone)/i.test(navigator.userAgent))) {
+            AdMob.isInterstitialReady(function(isready){
+                if(isready) 
+                    AdMob.showInterstitial();
+            });
+        }
+        document.getElementById("screen").style.display = 'none'; 
     }
 
     function removeResultBox() {
