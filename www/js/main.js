@@ -139,6 +139,18 @@ function saveFavorites()
         $("#message").text('Stop added to favorites!!');
 }
 
+function showAd()
+{
+    document.getElementById("screen").style.display = 'block';     
+    if ((/(android|windows phone)/i.test(navigator.userAgent))) {
+        AdMob.isInterstitialReady(function(isready){
+            if(isready) 
+                AdMob.showInterstitial();
+        });
+    }
+    document.getElementById("screen").style.display = 'none'; 
+}
+
 var	TransitMaster =	TransitMaster || {};
 
 TransitMaster.StopTimes = function (options) {
@@ -426,18 +438,6 @@ TransitMaster.StopTimes = function (options) {
             else
                 removeResultBox();
         }
-    }
-
-    function showAd()
-    {
-        document.getElementById("screen").style.display = 'block';     
-        if ((/(android|windows phone)/i.test(navigator.userAgent))) {
-            AdMob.isInterstitialReady(function(isready){
-                if(isready) 
-                    AdMob.showInterstitial();
-            });
-        }
-        document.getElementById("screen").style.display = 'none'; 
     }
 
     function removeResultBox() {
