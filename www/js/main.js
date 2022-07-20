@@ -141,7 +141,6 @@ function saveFavorites()
 
 function showAd()
 {
-    alert('1');
     document.getElementById("screen").style.display = 'block';     
     if ((/(android|windows phone)/i.test(navigator.userAgent))) {
         AdMob.isInterstitialReady(function(isready){
