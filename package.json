@@ -21,12 +21,14 @@
       "cordova-plugin-inappbrowser": {}
     },
     "platforms": [
-      "android"
+      "android",
+      "ios"
     ]
   },
   "devDependencies": {
     "cordova-admobsdk": "^8.13.0",
     "cordova-android": "^10.1.2",
+    "cordova-ios": "^6.2.0",
     "cordova-plugin-admobpro": "^8.13.1",
     "cordova-plugin-extension": "^1.6.0",
     "cordova-plugin-idfa": "^2.1.0",
