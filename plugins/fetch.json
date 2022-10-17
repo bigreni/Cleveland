@@ -1,27 +1,8 @@
 {
-  "cordova-plugin-admobpro": {
-    "source": {
-      "type": "registry",
-      "id": "cordova-plugin-admobpro"
-    },
-    "is_top_level": true,
-    "variables": {
-      "ADMOB_APP_ID": "pub-9249695405712287",
-      "PLAY_SERVICES_VERSION": "16.0.0"
-    }
-  },
   "cordova-plugin-extension": {
     "source": {
       "type": "registry",
       "id": "cordova-plugin-extension"
-    },
-    "is_top_level": false,
-    "variables": {}
-  },
-  "cordova-admobsdk": {
-    "source": {
-      "type": "registry",
-      "id": "cordova-admobsdk@~7.49.0"
     },
     "is_top_level": false,
     "variables": {}
@@ -66,6 +47,61 @@
       "id": "cordova-plugin-geolocation@4.1.0"
     },
     "is_top_level": true,
+    "variables": {
+      "GPS_REQUIRED": "true"
+    }
+  },
+  "cordova-plugin-admobpro": {
+    "source": {
+      "type": "registry",
+      "id": "cordova-plugin-admobpro"
+    },
+    "is_top_level": true,
+    "variables": {
+      "ADMOB_ANDROID_APP_ID": "ca-app-pub-1855415514372943~9063671314",
+      "PLAY_SERVICES_VERSION": "20.4.0"
+    }
+  },
+  "cordova-admobsdk": {
+    "source": {
+      "type": "registry",
+      "id": "cordova-admobsdk"
+    },
+    "is_top_level": true,
+    "variables": {}
+  },
+  "cordova-plugin-idfa": {
+    "source": {
+      "type": "registry",
+      "id": "cordova-plugin-idfa"
+    },
+    "is_top_level": true,
+    "variables": {
+      "ANDROID_PLAY_ADID_VERSION": "17.0.+"
+    }
+  },
+  "cordova-plugin-wkwebview-file-xhr": {
+    "source": {
+      "type": "registry",
+      "id": "cordova-plugin-wkwebview-file-xhr"
+    },
+    "is_top_level": true,
+    "variables": {}
+  },
+  "cordova-plugin-inappbrowser": {
+    "source": {
+      "type": "registry",
+      "id": "cordova-plugin-inappbrowser@5.0.0"
+    },
+    "is_top_level": true,
+    "variables": {}
+  },
+  "cordova-support-android-plugin": {
+    "source": {
+      "type": "registry",
+      "id": "cordova-support-android-plugin@~2.0.4"
+    },
+    "is_top_level": false,
     "variables": {}
   }
 }

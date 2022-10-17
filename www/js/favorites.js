@@ -1,6 +1,5 @@
 function loadFavorites()
 {
-    $('#simplemenu').sidr();
     var favStop = localStorage.getItem("Favorites");
     var arrFaves = favStop.split("|");
     var arrStops = null;
@@ -71,10 +70,6 @@ function loadArrivals(route,direction,stop)
             reset(true);
             displayResultsBox(result);
 
-            //if (!refresh)
-            //    timer = window.setInterval(function () {
-            //        loadArrivals(true);
-            //    }, 30000);
         },
         error: function () {
             displayError("Failed to	load stop times");

@@ -57,10 +57,10 @@
 
     function loadInterstitial() {
         if ((/(android|windows phone)/i.test(navigator.userAgent))) {
-            AdMob.prepareInterstitial({ adId: admobid.interstitial, isTesting: true, autoShow: false });
+            AdMob.prepareInterstitial({ adId: admobid.interstitial, isTesting: false, autoShow: false });
             //document.getElementById("screen").style.display = 'none';     
         } else if ((/(ipad|iphone|ipod)/i.test(navigator.userAgent))) {
-            AdMob.prepareInterstitial({ adId: admobid.interstitial, isTesting: false, autoShow: true });
+            AdMob.prepareInterstitial({ adId: admobid.interstitial, isTesting: false, autoShow: false });
             //document.getElementById("screen").style.display = 'none';     
         } else
         {
@@ -72,12 +72,8 @@
     {
 		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});
         initApp();
+        checkPermissions();
         askRating();
-        //clearFaves();
-        //document.getElementById('screen').style.display = 'none';     
-        //window.ga.startTrackerWithId('UA-88579601-10', 1, function(msg) {
-        //    window.ga.trackView('Home');
-        //});  
     }
 
    function notFirstUse()
@@ -86,20 +82,32 @@
         document.getElementById('screen').style.display = 'none';     
     }
 
-    function clearFaves()
-    {
-            var appVersion = localStorage.getItem("Oldversion");
-            if (appVersion == null)
-            {
-                localStorage.removeItem("Favorites");
-                localStorage.setItem("Oldversion", 1);
-            }   
+    function checkPermissions(){
+        const idfaPlugin = cordova.plugins.idfa;
+    
+        idfaPlugin.getInfo()
+            .then(info => {
+                if (!info.trackingLimited) {
+                    return info.idfa || info.aaid;
+                } else if (info.trackingPermission === idfaPlugin.TRACKING_PERMISSION_NOT_DETERMINED) {
+                    return idfaPlugin.requestPermission().then(result => {
+                        if (result === idfaPlugin.TRACKING_PERMISSION_AUTHORIZED) {
+                            return idfaPlugin.getInfo().then(info => {
+                                return info.idfa || info.aaid;
+                            });
+                        }
+                    });
+                }
+            });
     }
-
-function askRating()
-{
-  AppRate.preferences = {
-  openStoreInApp: true,
+    
+    function askRating()
+    {
+    cordova.plugins.AppRate.setPreferences = {
+    reviewType: {
+        ios: 'AppStoreReview',
+        android: 'InAppBrowser'
+        },
   useLanguage:  'en',
   usesUntilPrompt: 10,
   promptAgainForEachNewVersion: true,
@@ -142,7 +150,7 @@ function saveFavorites()
 function showAd()
 {
     document.getElementById("screen").style.display = 'block';     
-    if ((/(android|windows phone)/i.test(navigator.userAgent))) {
+    if ((/(ipad|iphone|ipod|android|windows phone)/i.test(navigator.userAgent))) {
         AdMob.isInterstitialReady(function(isready){
             if(isready) 
                 AdMob.showInterstitial();
@@ -159,7 +167,6 @@ TransitMaster.StopTimes = function (options) {
 
     var timer = null;
     var initialView = true;
-    $('#simplemenu').sidr();
 
     initialize();
 

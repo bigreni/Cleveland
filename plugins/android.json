@@ -7,9 +7,12 @@
     "files": {}
   },
   "installed_plugins": {
+    "cordova-admobsdk": {
+      "PACKAGE_NAME": "com.cleveland.withads"
+    },
     "cordova-plugin-admobpro": {
-      "ADMOB_APP_ID": "pub-9249695405712287",
-      "PLAY_SERVICES_VERSION": "16.0.0",
+      "ADMOB_ANDROID_APP_ID": "ca-app-pub-1855415514372943~9063671314",
+      "PLAY_SERVICES_VERSION": "20.4.0",
       "PACKAGE_NAME": "com.cleveland.withads"
     },
     "cordova-plugin-apprate": {
@@ -25,16 +28,26 @@
     "cordova-plugin-geolocation": {
       "GPS_REQUIRED": "true",
       "PACKAGE_NAME": "com.cleveland.withads"
+    },
+    "cordova-plugin-idfa": {
+      "ANDROID_PLAY_ADID_VERSION": "17.0.+",
+      "PACKAGE_NAME": "com.cleveland.withads"
+    },
+    "cordova-plugin-inappbrowser": {
+      "PACKAGE_NAME": "com.cleveland.withads"
+    },
+    "cordova-plugin-wkwebview-file-xhr": {
+      "PACKAGE_NAME": "com.cleveland.withads"
     }
   },
   "dependent_plugins": {
-    "cordova-admobsdk": {
-      "PACKAGE_NAME": "com.cleveland.withads"
-    },
     "cordova-plugin-extension": {
       "PACKAGE_NAME": "com.cleveland.withads"
     },
     "cordova-plugin-nativestorage": {
+      "PACKAGE_NAME": "com.cleveland.withads"
+    },
+    "cordova-support-android-plugin": {
       "PACKAGE_NAME": "com.cleveland.withads"
     }
   }

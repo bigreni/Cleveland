@@ -13,14 +13,25 @@
   "author": "Apache Cordova Team",
   "license": "Apache-2.0",
   "cordova": {
-    "plugins": {},
+    "plugins": {
+      "cordova-plugin-admobpro": {},
+      "cordova-admobsdk": {},
+      "cordova-plugin-idfa": {},
+      "cordova-plugin-wkwebview-file-xhr": {},
+      "cordova-plugin-inappbrowser": {}
+    },
     "platforms": [
-      "ios",
       "android"
     ]
   },
   "devDependencies": {
+    "cordova-admobsdk": "^8.13.0",
     "cordova-android": "^10.1.2",
-    "cordova-ios": "^6.2.0"
+    "cordova-plugin-admobpro": "^8.13.1",
+    "cordova-plugin-extension": "^1.6.0",
+    "cordova-plugin-idfa": "^2.1.0",
+    "cordova-plugin-inappbrowser": "^5.0.0",
+    "cordova-plugin-wkwebview-file-xhr": "^3.1.0",
+    "cordova-support-android-plugin": "~2.0.4"
   }
 }

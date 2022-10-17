@@ -57,7 +57,7 @@
 
     function loadInterstitial() {
         if ((/(android|windows phone)/i.test(navigator.userAgent))) {
-            AdMob.prepareInterstitial({ adId: admobid.interstitial, isTesting: true, autoShow: false });
+            AdMob.prepareInterstitial({ adId: admobid.interstitial, isTesting: false, autoShow: false });
             //document.getElementById("screen").style.display = 'none';     
         } else if ((/(ipad|iphone|ipod)/i.test(navigator.userAgent))) {
             AdMob.prepareInterstitial({ adId: admobid.interstitial, isTesting: false, autoShow: true });
@@ -139,6 +139,18 @@ function saveFavorites()
         $("#message").text('Stop added to favorites!!');
 }
 
+function showAd()
+{
+    document.getElementById("screen").style.display = 'block';     
+    if ((/(android|windows phone)/i.test(navigator.userAgent))) {
+        AdMob.isInterstitialReady(function(isready){
+            if(isready) 
+                AdMob.showInterstitial();
+        });
+    }
+    document.getElementById("screen").style.display = 'none'; 
+}
+
 var	TransitMaster =	TransitMaster || {};
 
 TransitMaster.StopTimes = function (options) {
@@ -147,7 +159,6 @@ TransitMaster.StopTimes = function (options) {
 
     var timer = null;
     var initialView = true;
-    $('#simplemenu').sidr();
 
     initialize();
 
@@ -426,18 +437,6 @@ TransitMaster.StopTimes = function (options) {
             else
                 removeResultBox();
         }
-    }
-
-    function showAd()
-    {
-        document.getElementById("screen").style.display = 'block';     
-        if ((/(android|windows phone)/i.test(navigator.userAgent))) {
-            AdMob.isInterstitialReady(function(isready){
-                if(isready) 
-                    AdMob.showInterstitial();
-            });
-        }
-        document.getElementById("screen").style.display = 'none'; 
     }
 
     function removeResultBox() {
