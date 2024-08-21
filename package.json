@@ -36,11 +36,13 @@
       }
     },
     "platforms": [
-      "android"
+      "android",
+      "ios"
     ]
   },
   "devDependencies": {
     "cordova-android": "^13.0.0",
+    "cordova-ios": "^7.1.1",
     "cordova-plugin-apprate": "^1.8.0",
     "cordova-plugin-device": "^3.0.0",
     "cordova-plugin-geolocation": "^5.0.0",

@@ -1,0 +1,6 @@
+framework module Pods_RTA_Bus_Tracker {
+  umbrella header "Pods-RTA Bus Tracker-umbrella.h"
+
+  export *
+  module * { export * }
+}
