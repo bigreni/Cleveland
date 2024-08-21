@@ -7,17 +7,57 @@
     "files": {
       "AndroidManifest.xml": {
         "parents": {
+          "/manifest": [
+            {
+              "xml": "<uses-permission android:name=\"com.android.vending.BILLING\" />",
+              "count": 2,
+              "mode": "merge",
+              "id": "config.xml",
+              "oldAttrib": {
+                "android:hardwareAccelerated": "true",
+                "android:name": "com.google.android.gms.permission.AD_ID",
+                "android:versionCode": "30000",
+                "android:versionName": "3.0",
+                "xmlns:android": "http://schemas.android.com/apk/res/android"
+              }
+            },
+            {
+              "xml": "<uses-permission android:name=\"com.google.android.gms.permission.AD_ID\" />",
+              "count": 1,
+              "mode": "merge",
+              "id": "config.xml",
+              "oldAttrib": {
+                "android:hardwareAccelerated": "true",
+                "android:name": "com.android.vending.BILLING",
+                "android:versionCode": "30000",
+                "android:versionName": "3.0",
+                "xmlns:android": "http://schemas.android.com/apk/res/android"
+              }
+            }
+          ],
           "/manifest/application": [
             {
               "xml": "<activity android:configChanges=\"keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize\" android:excludeFromRecents=\"true\" android:name=\"com.google.android.gms.ads.AdActivity\" android:noHistory=\"true\" />",
               "count": 1
             },
             {
-              "xml": "<meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"ca-app-pub-1855415514372943~9063671314\" />",
+              "xml": "<meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"ca-app-pub-9249695405712287~1939951954\" />",
               "count": 1
             },
             {
               "xml": "<meta-data android:name=\"com.google.android.gms.ads.DELAY_APP_MEASUREMENT_INIT\" android:value=\"true\" />",
+              "count": 1
+            },
+            {
+              "xml": "<meta-data android:name=\"com.google.android.gms.ads.flag.OPTIMIZE_INITIALIZATION\" android:value=\"true\" />",
+              "count": 1
+            },
+            {
+              "xml": "<meta-data android:name=\"com.google.android.gms.ads.flag.OPTIMIZE_AD_LOADING\" android:value=\"true\" />",
+              "count": 1
+            },
+            {
+              "xml": "<meta-data android:name=\"com.google.android.gms.ads.flag.INTEGRATION_MANAGER\" android:value=\"webview\" />",
               "count": 1
             },
             {
@@ -36,14 +76,6 @@
           ],
           "/*": [
             {
-              "xml": "<uses-permission android:name=\"android.permission.INTERNET\" />",
-              "count": 2
-            },
-            {
-              "xml": "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />",
-              "count": 1
-            },
-            {
               "xml": "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />",
               "count": 1
             },
@@ -54,6 +86,18 @@
             {
               "xml": "<uses-feature android:name=\"android.hardware.location.gps\" android:required=\"true\" />",
               "count": 1
+            },
+            {
+              "xml": "<uses-permission android:name=\"android.permission.INTERNET\" />",
+              "count": 1
+            },
+            {
+              "xml": "<uses-permission android:name=\"com.google.android.gms.permission.AD_ID\" />",
+              "count": 1
+            },
+            {
+              "xml": "<uses-permission android:name=\"com.android.vending.BILLING\" />",
+              "count": 1
             }
           ]
         }
@@ -62,7 +106,7 @@
         "parents": {
           "/*": [
             {
-              "xml": "<feature name=\"AdMob\"><param name=\"android-package\" value=\"com.rjfun.cordova.admob.AdMobPlugin\" /><param name=\"onload\" value=\"true\" /></feature>",
+              "xml": "<feature name=\"AdMob\"><param name=\"android-package\" value=\"admob.plus.cordova.AdMob\" /></feature>",
               "count": 1
             },
             {
@@ -92,6 +136,10 @@
             {
               "xml": "<feature name=\"InAppBrowser\"><param name=\"android-package\" value=\"org.apache.cordova.inappbrowser.InAppBrowser\" /></feature>",
               "count": 1
+            },
+            {
+              "xml": "<feature name=\"InAppBillingPlugin\"><param name=\"android-package\" value=\"cc.fovea.PurchasePlugin\" /></feature>",
+              "count": 1
             }
           ]
         }
@@ -99,15 +147,9 @@
     }
   },
   "installed_plugins": {
-    "cordova-admobsdk": {
-      "PACKAGE_NAME": "com.cleveland.withads"
-    },
-    "cordova-plugin-extension": {
-      "PACKAGE_NAME": "com.cleveland.withads"
-    },
-    "cordova-plugin-admobpro": {
-      "ADMOB_ANDROID_APP_ID": "ca-app-pub-1855415514372943~9063671314",
-      "PLAY_SERVICES_VERSION": "20.4.0",
+    "admob-plus-cordova": {
+      "APP_ID_ANDROID": "ca-app-pub-9249695405712287~1939951954",
+      "PLAY_SERVICES_VERSION": "23.0.0",
       "PACKAGE_NAME": "com.cleveland.withads"
     },
     "cordova-plugin-dialogs": {
@@ -117,7 +159,7 @@
       "PACKAGE_NAME": "com.cleveland.withads"
     },
     "cordova-plugin-apprate": {
-      "PLAY_CORE_VERSION": "1.+",
+      "PLAY_REVIEW_VERSION": "2.+",
       "PACKAGE_NAME": "com.cleveland.withads"
     },
     "cordova-plugin-device": {
@@ -137,6 +179,9 @@
     "cordova-plugin-inappbrowser": {
       "PACKAGE_NAME": "com.cleveland.withads"
     },
+    "cordova-plugin-purchase": {
+      "PACKAGE_NAME": "com.cleveland.withads"
+    },
     "cordova-plugin-wkwebview-file-xhr": {
       "PACKAGE_NAME": "com.cleveland.withads"
     }
@@ -144,11 +189,11 @@
   "dependent_plugins": {},
   "modules": [
     {
-      "id": "cordova-plugin-admobpro.AdMob",
-      "file": "plugins/cordova-plugin-admobpro/www/AdMob.js",
-      "pluginId": "cordova-plugin-admobpro",
+      "id": "admob-plus-cordova.AdMob",
+      "file": "plugins/admob-plus-cordova/www/admob.js",
+      "pluginId": "admob-plus-cordova",
       "clobbers": [
-        "window.AdMob"
+        "admob"
       ]
     },
     {
@@ -243,20 +288,28 @@
       "clobbers": [
         "cordova.InAppBrowser.open"
       ]
+    },
+    {
+      "id": "cordova-plugin-purchase.CdvPurchase",
+      "file": "plugins/cordova-plugin-purchase/www/store.js",
+      "pluginId": "cordova-plugin-purchase",
+      "clobbers": [
+        "store",
+        "CdvPurchase"
+      ]
     }
   ],
   "plugin_metadata": {
-    "cordova-admobsdk": "8.13.0",
-    "cordova-plugin-extension": "1.6.0",
-    "cordova-plugin-admobpro": "8.13.1",
+    "admob-plus-cordova": "2.0.0-alpha.18",
     "cordova-plugin-dialogs": "2.0.2",
     "cordova-plugin-nativestorage": "2.3.2",
-    "cordova-plugin-apprate": "1.7.2",
-    "cordova-plugin-device": "2.0.3",
-    "cordova-plugin-geolocation": "4.1.0",
+    "cordova-plugin-apprate": "1.8.0",
+    "cordova-plugin-device": "3.0.0",
+    "cordova-plugin-geolocation": "5.0.0",
     "cordova-support-android-plugin": "2.0.4",
-    "cordova-plugin-idfa": "2.1.0",
-    "cordova-plugin-inappbrowser": "5.0.0",
-    "cordova-plugin-wkwebview-file-xhr": "3.1.0"
+    "cordova-plugin-idfa": "3.0.0",
+    "cordova-plugin-inappbrowser": "6.0.0",
+    "cordova-plugin-purchase": "13.11.1",
+    "cordova-plugin-wkwebview-file-xhr": "3.1.1"
   }
 }

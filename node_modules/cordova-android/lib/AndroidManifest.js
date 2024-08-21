@@ -17,10 +17,10 @@
     under the License.
 */
 
-var fs = require('fs');
-var xml = require('cordova-common').xmlHelpers;
+const fs = require('fs');
+const xml = require('cordova-common').xmlHelpers;
 
-var DEFAULT_ORIENTATION = 'default';
+const DEFAULT_ORIENTATION = 'default';
 
 /** Wraps an AndroidManifest file */
 class AndroidManifest {
@@ -50,17 +50,8 @@ class AndroidManifest {
         return this;
     }
 
-    getPackageId () {
-        return this.doc.getroot().attrib.package;
-    }
-
-    setPackageId (pkgId) {
-        this.doc.getroot().attrib.package = pkgId;
-        return this;
-    }
-
     getActivity () {
-        var activity = this.doc.getroot().find('./application/activity');
+        const activity = this.doc.getroot().find('./application/activity');
         return {
             getName: function () {
                 return activity.attrib['android:name'];
@@ -103,7 +94,7 @@ class AndroidManifest {
     }
 
     setDebuggable (value) {
-        var application = this.doc.getroot().find('./application');
+        const application = this.doc.getroot().find('./application');
         if (value) {
             application.attrib['android:debuggable'] = 'true';
         } else {

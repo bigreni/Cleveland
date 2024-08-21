@@ -1,7 +1,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
 xmlns:android="http://schemas.android.com/apk/res/android"
            id="cordova-plugin-idfa"
-      version="2.1.0">
+      version="3.0.0">
 
     <name>cordova-plugin-idfa</name>
     <description>Cordova plugin to get Advertising ID (IDFA or AAID)</description>
@@ -45,6 +45,7 @@ xmlns:android="http://schemas.android.com/apk/res/android"
 
         <config-file target="AndroidManifest.xml" parent="/*">
             <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
         </config-file>
 
         <dependency id="cordova-support-android-plugin" version="~2.0.4"/>

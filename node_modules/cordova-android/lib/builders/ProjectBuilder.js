@@ -17,16 +17,17 @@
        under the License.
 */
 
-var fs = require('fs-extra');
-var path = require('path');
+const fs = require('fs-extra');
+const path = require('path');
 const execa = require('execa');
 const glob = require('fast-glob');
-var events = require('cordova-common').events;
-var CordovaError = require('cordova-common').CordovaError;
-var check_reqs = require('../check_reqs');
-var PackageType = require('../PackageType');
-const { compareByAll } = require('../utils');
+const events = require('cordova-common').events;
+const CordovaError = require('cordova-common').CordovaError;
+const check_reqs = require('../check_reqs');
+const PackageType = require('../PackageType');
+const { compareByAll, isWindows } = require('../utils');
 const { createEditor } = require('properties-parser');
+const CordovaGradleConfigParserFactory = require('../config/CordovaGradleConfigParserFactory');
 
 const MARKER = 'YOUR CHANGES WILL BE ERASED!';
 const SIGNING_PROPERTIES = '-signing.properties';
@@ -84,7 +85,11 @@ class ProjectBuilder {
     }
 
     getArgs (cmd, opts) {
-        let args;
+        let args = [];
+        if (opts.extraArgs) {
+            args = args.concat(opts.extraArgs);
+        }
+
         let buildCmd = cmd;
         if (opts.packageType === PackageType.BUNDLE) {
             if (cmd === 'release') {
@@ -92,8 +97,6 @@ class ProjectBuilder {
             } else if (cmd === 'debug') {
                 buildCmd = ':app:bundleDebug';
             }
-
-            args = [buildCmd, '-b', path.join(this.root, 'build.gradle')];
         } else {
             if (cmd === 'release') {
                 buildCmd = 'cdvBuildRelease';
@@ -101,74 +104,71 @@ class ProjectBuilder {
                 buildCmd = 'cdvBuildDebug';
             }
 
-            args = [buildCmd, '-b', path.join(this.root, 'build.gradle')];
-
             if (opts.arch) {
                 args.push('-PcdvBuildArch=' + opts.arch);
             }
         }
 
-        args.push.apply(args, opts.extraArgs);
+        args.push(buildCmd);
 
         return args;
     }
 
-    /*
-    * This returns a promise
-    */
-    runGradleWrapper (gradle_cmd) {
-        var gradlePath = path.join(this.root, 'gradlew');
-        var wrapperGradle = path.join(this.root, 'wrapper.gradle');
-        if (fs.existsSync(gradlePath)) {
-            // Literally do nothing, for some reason this works, while !fs.existsSync didn't on Windows
+    getGradleWrapperPath () {
+        let wrapper = path.join(this.root, 'tools', 'gradlew');
+
+        if (isWindows()) {
+            wrapper += '.bat';
+        }
+
+        return wrapper;
+    }
+
+    /**
+     * Installs/updates the gradle wrapper
+     * @param {string} gradleVersion The gradle version to install. Ignored if CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL environment variable is defined
+     * @returns {Promise<void>}
+     */
+    async installGradleWrapper (gradleVersion) {
+        if (process.env.CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL) {
+            events.emit('verbose', `Overriding Gradle Version via CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL (${process.env.CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL})`);
+            await execa('gradle', ['-p', path.join(this.root, 'tools'), 'wrapper', '--gradle-distribution-url', process.env.CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL], { stdio: 'inherit' });
         } else {
-            return execa(gradle_cmd, ['-p', this.root, 'wrapper', '-b', wrapperGradle], { stdio: 'inherit' });
+            await execa('gradle', ['-p', path.join(this.root, 'tools'), 'wrapper', '--gradle-version', gradleVersion], { stdio: 'inherit' });
         }
     }
 
     readProjectProperties () {
         function findAllUniq (data, r) {
-            var s = {};
-            var m;
+            const s = {};
+            let m;
             while ((m = r.exec(data))) {
                 s[m[1]] = 1;
             }
             return Object.keys(s);
         }
 
-        var data = fs.readFileSync(path.join(this.root, 'project.properties'), 'utf8');
+        const data = fs.readFileSync(path.join(this.root, 'project.properties'), 'utf8');
         return {
             libs: findAllUniq(data, /^\s*android\.library\.reference\.\d+=(.*)(?:\s|$)/mg),
             gradleIncludes: findAllUniq(data, /^\s*cordova\.gradle\.include\.\d+=(.*)(?:\s|$)/mg),
-            systemLibs: findAllUniq(data, /^\s*cordova\.system\.library\.\d+=(.*)(?:\s|$)/mg)
+            systemLibs: findAllUniq(data, /^\s*cordova\.system\.library\.\d+=((?!.*\().*)(?:\s|$)/mg),
+            bomPlatforms: findAllUniq(data, /^\s*cordova\.system\.library\.\d+=platform\((?:'|")(.*)(?:'|")\)/mg)
         };
-    }
-
-    extractRealProjectNameFromManifest () {
-        var manifestPath = path.join(this.root, 'app', 'src', 'main', 'AndroidManifest.xml');
-        var manifestData = fs.readFileSync(manifestPath, 'utf8');
-        var m = /<manifest[\s\S]*?package\s*=\s*"(.*?)"/i.exec(manifestData);
-        if (!m) {
-            throw new CordovaError('Could not find package name in ' + manifestPath);
-        }
-
-        var packageName = m[1];
-        var lastDotIndex = packageName.lastIndexOf('.');
-        return packageName.substring(lastDotIndex + 1);
     }
 
     // Makes the project buildable, minus the gradle wrapper.
     prepBuildFiles () {
         // Update the version of build.gradle in each dependent library.
-        var pluginBuildGradle = path.join(__dirname, 'plugin-build.gradle');
-        var propertiesObj = this.readProjectProperties();
-        var subProjects = propertiesObj.libs;
+        const pluginBuildGradle = path.join(__dirname, 'plugin-build.gradle');
+        const propertiesObj = this.readProjectProperties();
+        const subProjects = propertiesObj.libs;
 
         // Check and copy the gradle file into the subproject
         // Called by the loop before this function def
 
-        var checkAndCopy = function (subProject, root) {
-            var subProjectGradle = path.join(root, subProject, 'build.gradle');
+        const checkAndCopy = function (subProject, root) {
+            const subProjectGradle = path.join(root, subProject, 'build.gradle');
             // This is the future-proof way of checking if a file exists
             // This must be synchronous to satisfy a Travis test
             try {
@@ -178,17 +178,21 @@ class ProjectBuilder {
             }
         };
 
-        for (var i = 0; i < subProjects.length; ++i) {
+        for (let i = 0; i < subProjects.length; ++i) {
             if (subProjects[i] !== 'CordovaLib') {
                 checkAndCopy(subProjects[i], this.root);
             }
         }
-        var projectName = this.extractRealProjectNameFromManifest();
+
+        // get project name cdv-gradle-config.
+        const cdvGradleConfig = CordovaGradleConfigParserFactory.create(this.root);
+        const projectName = cdvGradleConfig.getProjectNameFromPackageName();
+
         // Remove the proj.id/name- prefix from projects: https://issues.apache.org/jira/browse/CB-9149
-        var settingsGradlePaths = subProjects.map(function (p) {
-            var realDir = p.replace(/[/\\]/g, ':');
-            var libName = realDir.replace(projectName + '-', '');
-            var str = 'include ":' + libName + '"\n';
+        const settingsGradlePaths = subProjects.map(function (p) {
+            const realDir = p.replace(/[/\\]/g, ':');
+            const libName = realDir.replace(projectName + '-', '');
+            let str = 'include ":' + libName + '"\n';
             if (realDir.indexOf(projectName + '-') !== -1) {
                 str += 'project(":' + libName + '").projectDir = new File("' + p + '")\n';
             }
@@ -208,12 +212,12 @@ class ProjectBuilder {
         }
 
         // Update dependencies within build.gradle.
-        var buildGradle = fs.readFileSync(path.join(this.root, 'app', 'build.gradle'), 'utf8');
-        var depsList = '';
-        var root = this.root;
-        var insertExclude = function (p) {
-            var gradlePath = path.join(root, p, 'build.gradle');
-            var projectGradleFile = fs.readFileSync(gradlePath, 'utf-8');
+        let buildGradle = fs.readFileSync(path.join(this.root, 'app', 'build.gradle'), 'utf8');
+        let depsList = '';
+        const root = this.root;
+        const insertExclude = function (p) {
+            const gradlePath = path.join(root, p, 'build.gradle');
+            const projectGradleFile = fs.readFileSync(gradlePath, 'utf-8');
             if (projectGradleFile.indexOf('CordovaLib') !== -1) {
                 depsList += '{\n        exclude module:("CordovaLib")\n    }\n';
             } else {
@@ -222,26 +226,39 @@ class ProjectBuilder {
         };
         subProjects.forEach(function (p) {
             events.emit('log', 'Subproject Path: ' + p);
-            var libName = p.replace(/[/\\]/g, ':').replace(projectName + '-', '');
+            const libName = p.replace(/[/\\]/g, ':').replace(projectName + '-', '');
             if (libName !== 'app') {
                 depsList += '    implementation(project(path: ":' + libName + '"))';
                 insertExclude(p);
             }
         });
         // For why we do this mapping: https://issues.apache.org/jira/browse/CB-8390
-        var SYSTEM_LIBRARY_MAPPINGS = [
+        const SYSTEM_LIBRARY_MAPPINGS = [
             [/^\/?extras\/android\/support\/(.*)$/, 'com.android.support:support-$1:+'],
             [/^\/?google\/google_play_services\/libproject\/google-play-services_lib\/?$/, 'com.google.android.gms:play-services:+']
         ];
 
+        propertiesObj.bomPlatforms.forEach(function (p) {
+            if (!/:.*:/.exec(p)) {
+                throw new CordovaError('Malformed BoM platform: ' + p);
+            }
+
+            // Add bom platform
+            depsList += '    implementation platform("' + p + '")\n';
+        });
+
         propertiesObj.systemLibs.forEach(function (p) {
-            var mavenRef;
+            let mavenRef;
             // It's already in gradle form if it has two ':'s
             if (/:.*:/.exec(p)) {
                 mavenRef = p;
+            } else if (/:.*/.exec(p)) {
+                // Support BoM imports
+                mavenRef = p;
+                events.emit('warn', 'Library expects a BoM package: ' + p);
             } else {
-                for (var i = 0; i < SYSTEM_LIBRARY_MAPPINGS.length; ++i) {
-                    var pair = SYSTEM_LIBRARY_MAPPINGS[i];
+                for (let i = 0; i < SYSTEM_LIBRARY_MAPPINGS.length; ++i) {
+                    const pair = SYSTEM_LIBRARY_MAPPINGS[i];
                     if (pair[0].exec(p)) {
                         mavenRef = p.replace(pair[0], pair[1]);
                         break;
@@ -255,7 +272,7 @@ class ProjectBuilder {
         });
 
         buildGradle = buildGradle.replace(/(SUB-PROJECT DEPENDENCIES START)[\s\S]*(\/\/ SUB-PROJECT DEPENDENCIES END)/, '$1\n' + depsList + '    $2');
-        var includeList = '';
+        let includeList = '';
 
         propertiesObj.gradleIncludes.forEach(function (includePath) {
             includeList += 'apply from: "../' + includePath + '"\n';
@@ -266,24 +283,15 @@ class ProjectBuilder {
     }
 
     prepEnv (opts) {
-        var self = this;
+        const self = this;
+        const config = this._getCordovaConfig();
         return check_reqs.check_gradle()
-            .then(function (gradlePath) {
-                return self.runGradleWrapper(gradlePath);
+            .then(function () {
+                events.emit('verbose', `Using Gradle: ${config.GRADLE_VERSION}`);
+                return self.installGradleWrapper(config.GRADLE_VERSION);
             }).then(function () {
                 return self.prepBuildFiles();
             }).then(() => {
-                const config = this._getCordovaConfig();
-                // update/set the distributionUrl in the gradle-wrapper.properties
-                const gradleWrapperPropertiesPath = path.join(self.root, 'gradle/wrapper/gradle-wrapper.properties');
-                const gradleWrapperProperties = createEditor(gradleWrapperPropertiesPath);
-                const distributionUrl = process.env.CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL || `https://services.gradle.org/distributions/gradle-${config.GRADLE_VERSION}-all.zip`;
-                gradleWrapperProperties.set('distributionUrl', distributionUrl);
-                gradleWrapperProperties.save();
-
-                events.emit('verbose', `Gradle Distribution URL: ${distributionUrl}`);
-            })
-            .then(() => {
                 const signingPropertiesPath = path.join(self.root, `${opts.buildType}${SIGNING_PROPERTIES}`);
 
                 if (fs.existsSync(signingPropertiesPath)) fs.removeSync(signingPropertiesPath);
@@ -309,8 +317,10 @@ class ProjectBuilder {
     * Returns a promise.
     */
     async build (opts) {
-        var wrapper = path.join(this.root, 'gradlew');
-        var args = this.getArgs(opts.buildType === 'debug' ? 'debug' : 'release', opts);
+        const wrapper = this.getGradleWrapperPath();
+        const args = this.getArgs(opts.buildType === 'debug' ? 'debug' : 'release', opts);
+
+        events.emit('verbose', `Running Gradle Build: ${wrapper} ${args.join(' ')}`);
 
         try {
             return await execa(wrapper, args, { stdio: 'inherit', cwd: path.resolve(this.root) });
@@ -328,7 +338,7 @@ class ProjectBuilder {
     }
 
     clean (opts) {
-        const wrapper = path.join(this.root, 'gradlew');
+        const wrapper = this.getGradleWrapperPath();
         const args = this.getArgs('clean', opts);
         return execa(wrapper, args, { stdio: 'inherit', cwd: path.resolve(this.root) })
             .then(() => {

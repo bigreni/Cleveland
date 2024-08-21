@@ -1,8 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.cleveland.withads" version="2.1" versionCode="13" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.cleveland.withads" version="3.0" versionCode="300" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <feature name="AdMob">
-        <param name="android-package" value="com.rjfun.cordova.admob.AdMobPlugin" />
-        <param name="onload" value="true" />
+        <param name="android-package" value="admob.plus.cordova.AdMob" />
     </feature>
     <feature name="Notification">
         <param name="android-package" value="org.apache.cordova.dialogs.Notification" />
@@ -25,6 +24,9 @@
     <feature name="InAppBrowser">
         <param name="android-package" value="org.apache.cordova.inappbrowser.InAppBrowser" />
     </feature>
+    <feature name="InAppBillingPlugin">
+        <param name="android-package" value="cc.fovea.PurchasePlugin" />
+    </feature>
     <name>RTA Bus Tracker</name>
     <description>
         Bus App.
@@ -33,16 +35,15 @@
         Apache Cordova Team
     </author>
     <content src="index.html" />
-    <cdv:plugin name="cordova-plugin-admobpro" source="npm">
-    </cdv:plugin>
+    <cdv:plugin name="admob-plus-cordova" source="npm" />
     <cdv:plugin name="cordova-plugin-wkwebview-file-xhr" source="npm" />
-    <cdv:plugin name="cordova-plugin-statusbar" source="npm" />
     <cdv:plugin name="cordova-plugin-device" source="npm" />
     <cdv:plugin name="cordova-plugin-geolocation" source="npm" />
     <cdv:plugin name="cordova-plugin-dialogs" source="npm" />
     <cdv:plugin name="cordova-plugin-apprate" source="npm" />
     <cdv:plugin name="cordova-plugin-idfa" source="npm" />
     <cdv:plugin name="cordova-plugin-inappbrowser" source="npm" />
+    <cdv:plugin name="cordova-plugin-purchase" source="npm" />
     <allow-navigation href="http://*/*" />
     <allow-navigation href="https://*/*" />
     <allow-navigation href="data:*" />
@@ -55,13 +56,18 @@
     <allow-intent href="geo:*" />
     <icon src="icon.png" />
     <preference default="ca-app-pub-9249695405712287~1939951954" name="ADMOB_ANDROID_APP_ID" />
-    <preference default="20.4.0" name="PLAY_SERVICES_VERSION" />
+    <preference default="23.0.0" name="PLAY_SERVICES_VERSION" />
+    <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest">
+        <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+        <uses-permission android:name="com.android.vending.BILLING" />
+    </edit-config>
     <allow-intent href="market:*" />
     <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest/application">
         <application android:usesCleartextTraffic="true" />
     </edit-config>
     <preference name="loglevel" value="DEBUG" />
     <preference name="android-build-tool" value="gradle" />
+    <preference name="GradlePluginKotlinEnabled" value="true" />
     <preference name="permissions" value="none" />
     <preference name="orientation" value="portrait" />
     <preference name="target-device" value="universal" />
@@ -72,14 +78,16 @@
     <preference name="ios-statusbarstyle" value="black" />
     <preference name="detect-data-types" value="true" />
     <preference name="exit-on-suspend" value="false" />
-    <preference name="SplashScreenDelay" value="0" />
-    <preference name="auto-hide-splash-screen" value="true" />
+    <preference name="SplashScreenDelay" value="1" />
+    <preference name="AutoHideSplashScreen" value="true" />
     <preference name="DisallowOverscroll" value="true" />
     <preference name="disable-cursor" value="false" />
-    <preference name="android-minSdkVersion" value="24" />
-    <preference name="android-targetSdkVersion" value="30" />
+    <preference name="android-minSdkVersion" value="26" />
+    <preference name="android-targetSdkVersion" value="34" />
     <preference name="android-installLocation" value="auto" />
     <preference name="StatusBarOverlaysWebView" value="false" />
     <preference name="AndroidInsecureFileModeEnabled" value="true" />
     <preference name="InterceptRemoteRequests" value="all" />
+    <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/screen-all.png" />
+    <preference name="AndroidWindowSplashScreenAnimationDuration" value="1" />
 </widget>

@@ -17,24 +17,25 @@
     under the License.
 */
 
-var fs = require('fs-extra');
-var path = require('path');
+const fs = require('fs-extra');
+const path = require('path');
 const nopt = require('nopt');
 const glob = require('fast-glob');
-var events = require('cordova-common').events;
-var AndroidManifest = require('./AndroidManifest');
-var checkReqs = require('./check_reqs');
-var xmlHelpers = require('cordova-common').xmlHelpers;
-var CordovaError = require('cordova-common').CordovaError;
-var ConfigParser = require('cordova-common').ConfigParser;
-var FileUpdater = require('cordova-common').FileUpdater;
-var PlatformJson = require('cordova-common').PlatformJson;
-var PlatformMunger = require('cordova-common').ConfigChanges.PlatformMunger;
-var PluginInfoProvider = require('cordova-common').PluginInfoProvider;
+const dedent = require('dedent');
+const events = require('cordova-common').events;
+const AndroidManifest = require('./AndroidManifest');
+const xmlHelpers = require('cordova-common').xmlHelpers;
+const CordovaError = require('cordova-common').CordovaError;
+const ConfigParser = require('cordova-common').ConfigParser;
+const FileUpdater = require('cordova-common').FileUpdater;
+const PlatformJson = require('cordova-common').PlatformJson;
+const PlatformMunger = require('cordova-common').ConfigChanges.PlatformMunger;
+const PluginInfoProvider = require('cordova-common').PluginInfoProvider;
 const utils = require('./utils');
 const gradleConfigDefaults = require('./gradle-config-defaults');
-
+const checkReqs = require('./check_reqs');
 const GradlePropertiesParser = require('./config/GradlePropertiesParser');
+const CordovaGradleConfigParserFactory = require('./config/CordovaGradleConfigParserFactory');
 
 function parseArguments (argv) {
     return nopt({
@@ -44,15 +45,15 @@ function parseArguments (argv) {
 }
 
 module.exports.prepare = function (cordovaProject, options) {
-    var self = this;
+    const self = this;
 
     let args = {};
     if (options && options.options) {
         args = parseArguments(options.options.argv);
     }
 
-    var platformJson = PlatformJson.load(this.locations.root, this.platform);
-    var munger = new PlatformMunger(this.platform, this.locations.root, platformJson, new PluginInfoProvider());
+    const platformJson = PlatformJson.load(this.locations.root, this.platform);
+    const munger = new PlatformMunger(this.platform, this.locations.root, platformJson, new PluginInfoProvider());
 
     this._config = updateConfigFilesFrom(cordovaProject.projectConfig, munger, this.locations);
 
@@ -63,16 +64,15 @@ module.exports.prepare = function (cordovaProject, options) {
     updateUserProjectGradlePropertiesConfig(this, args);
 
     // Update own www dir with project's www assets and plugins' assets and js-files
-    return Promise.resolve(updateWww(cordovaProject, this.locations)).then(function () {
-        // update project according to config.xml changes.
-        return updateProjectAccordingTo(self._config, self.locations);
-    }).then(function () {
-        updateIcons(cordovaProject, path.relative(cordovaProject.root, self.locations.res));
-        updateSplashes(cordovaProject, path.relative(cordovaProject.root, self.locations.res));
-        updateFileResources(cordovaProject, path.relative(cordovaProject.root, self.locations.root));
-    }).then(function () {
-        events.emit('verbose', 'Prepared android project successfully');
-    });
+    return Promise.resolve(updateWww(cordovaProject, this.locations))
+        .then(() => warnForDeprecatedSplashScreen(cordovaProject))
+        .then(() => updateProjectAccordingTo(self._config, self.locations))
+        .then(function () {
+            updateIcons(cordovaProject, path.relative(cordovaProject.root, self.locations.res));
+            updateFileResources(cordovaProject, path.relative(cordovaProject.root, self.locations.root));
+        }).then(function () {
+            events.emit('verbose', 'Prepared android project successfully');
+        });
 };
 
 /** @param {PlatformApi} project */
@@ -82,6 +82,14 @@ function updateUserProjectGradleConfig (project) {
         ...gradleConfigDefaults,
         ...getUserGradleConfig(project._config)
     };
+
+    // Check if compile sdk is valid.
+    // The returned result is iggnored and since we do not need and will not throw  an error.
+    // Only using the valid check call for display the warning when target is greater then compiled.
+    checkReqs.isCompileSdkValid(
+        projectGradleConfig.COMPILE_SDK_VERSION,
+        projectGradleConfig.SDK_VERSION
+    );
 
     // Write out changes
     const projectGradleConfigPath = path.join(project.root, 'cdv-gradle-config.json');
@@ -93,6 +101,7 @@ function getUserGradleConfig (configXml) {
         { xmlKey: 'android-minSdkVersion', gradleKey: 'MIN_SDK_VERSION', type: Number },
         { xmlKey: 'android-maxSdkVersion', gradleKey: 'MAX_SDK_VERSION', type: Number },
         { xmlKey: 'android-targetSdkVersion', gradleKey: 'SDK_VERSION', type: Number },
+        { xmlKey: 'android-compileSdkVersion', gradleKey: 'COMPILE_SDK_VERSION', type: Number },
         { xmlKey: 'android-buildToolsVersion', gradleKey: 'BUILD_TOOLS_VERSION', type: String },
         { xmlKey: 'GradleVersion', gradleKey: 'GRADLE_VERSION', type: String },
         { xmlKey: 'AndroidGradlePluginVersion', gradleKey: 'AGP_VERSION', type: String },
@@ -101,7 +110,10 @@ function getUserGradleConfig (configXml) {
         { xmlKey: 'AndroidXWebKitVersion', gradleKey: 'ANDROIDX_WEBKIT_VERSION', type: String },
         { xmlKey: 'GradlePluginGoogleServicesVersion', gradleKey: 'GRADLE_PLUGIN_GOOGLE_SERVICES_VERSION', type: String },
         { xmlKey: 'GradlePluginGoogleServicesEnabled', gradleKey: 'IS_GRADLE_PLUGIN_GOOGLE_SERVICES_ENABLED', type: Boolean },
-        { xmlKey: 'GradlePluginKotlinEnabled', gradleKey: 'IS_GRADLE_PLUGIN_KOTLIN_ENABLED', type: Boolean }
+        { xmlKey: 'GradlePluginKotlinEnabled', gradleKey: 'IS_GRADLE_PLUGIN_KOTLIN_ENABLED', type: Boolean },
+        { xmlKey: 'AndroidJavaSourceCompatibility', gradleKey: 'JAVA_SOURCE_COMPATIBILITY', type: Number },
+        { xmlKey: 'AndroidJavaTargetCompatibility', gradleKey: 'JAVA_TARGET_COMPATIBILITY', type: Number },
+        { xmlKey: 'AndroidKotlinJVMTarget', gradleKey: 'KOTLIN_JVM_TARGET', type: String }
     ];
 
     return configXmlToGradleMapping.reduce((config, mapping) => {
@@ -151,19 +163,18 @@ module.exports.clean = function (options) {
     // been called from the platform shell script rather than the CLI. Check for the
     // noPrepare option passed in by the non-CLI clean script. If that's present, or if
     // there's no config.xml found at the project root, then don't clean prepared files.
-    var projectRoot = path.resolve(this.root, '../..');
+    const projectRoot = path.resolve(this.root, '../..');
     if ((options && options.noPrepare) || !fs.existsSync(this.locations.configXml) ||
             !fs.existsSync(this.locations.configXml)) {
         return Promise.resolve();
     }
 
-    var projectConfig = new ConfigParser(this.locations.configXml);
+    const projectConfig = new ConfigParser(this.locations.configXml);
 
-    var self = this;
+    const self = this;
     return Promise.resolve().then(function () {
         cleanWww(projectRoot, self.locations);
         cleanIcons(projectRoot, projectConfig, path.relative(projectRoot, self.locations.res));
-        cleanSplashes(projectRoot, projectConfig, path.relative(projectRoot, self.locations.res));
         cleanFileResources(projectRoot, projectConfig, path.relative(projectRoot, self.locations.root));
     });
 };
@@ -195,7 +206,7 @@ function updateConfigFilesFrom (sourceConfig, configMunger, locations) {
 
     events.emit('verbose', 'Merging project\'s config.xml into platform-specific android config.xml');
     // Merge changes from app's config.xml into platform's one
-    var config = new ConfigParser(locations.configXml);
+    const config = new ConfigParser(locations.configXml);
     xmlHelpers.mergeXml(sourceConfig.doc.getroot(),
         config.doc.getroot(), 'android', /* clobber= */true);
 
@@ -220,19 +231,19 @@ function logFileOp (message) {
  *   paths for www files.
  */
 function updateWww (cordovaProject, destinations) {
-    var sourceDirs = [
+    const sourceDirs = [
         path.relative(cordovaProject.root, cordovaProject.locations.www),
         path.relative(cordovaProject.root, destinations.platformWww)
     ];
 
     // If project contains 'merges' for our platform, use them as another overrides
-    var merges_path = path.join(cordovaProject.root, 'merges', 'android');
+    const merges_path = path.join(cordovaProject.root, 'merges', 'android');
     if (fs.existsSync(merges_path)) {
         events.emit('verbose', 'Found "merges/android" folder. Copying its contents into the android project.');
         sourceDirs.push(path.join('merges', 'android'));
     }
 
-    var targetDir = path.relative(cordovaProject.root, destinations.www);
+    const targetDir = path.relative(cordovaProject.root, destinations.www);
     events.emit(
         'verbose', 'Merging and updating files from [' + sourceDirs.join(', ') + '] to ' + targetDir);
     FileUpdater.mergeAndUpdateDir(
@@ -243,7 +254,7 @@ function updateWww (cordovaProject, destinations) {
  * Cleans all files from the platform 'www' directory.
  */
 function cleanWww (projectRoot, locations) {
-    var targetDir = path.relative(projectRoot, locations.www);
+    const targetDir = path.relative(projectRoot, locations.www);
     events.emit('verbose', 'Cleaning ' + targetDir);
 
     // No source paths are specified, so mergeAndUpdateDir() will clear the target directory.
@@ -259,19 +270,10 @@ function cleanWww (projectRoot, locations) {
  * @param   {Object}  locations       A map of locations for this platform
  */
 function updateProjectAccordingTo (platformConfig, locations) {
-    // Update app name by editing res/values/strings.xml
-    var strings = xmlHelpers.parseElementtreeSync(locations.strings);
+    updateProjectStrings(platformConfig, locations);
+    updateProjectSplashScreen(platformConfig, locations);
 
-    var name = platformConfig.name();
-    strings.find('string[@name="app_name"]').text = name.replace(/'/g, '\\\'');
-
-    var shortName = platformConfig.shortName && platformConfig.shortName();
-    if (shortName && shortName !== name) {
-        strings.find('string[@name="launcher_name"]').text = shortName.replace(/'/g, '\\\'');
-    }
-
-    fs.writeFileSync(locations.strings, strings.write({ indent: 4 }), 'utf-8');
-    events.emit('verbose', 'Wrote out android application name "' + name + '" to ' + locations.strings);
+    const name = platformConfig.name();
 
     // Update app name for gradle project
     fs.writeFileSync(path.join(locations.root, 'cdv-gradle-name.gradle'),
@@ -279,22 +281,24 @@ function updateProjectAccordingTo (platformConfig, locations) {
         'rootProject.name = "' + name.replace(/[/\\:<>"?*|]/g, '_') + '"\n');
 
     // Java packages cannot support dashes
-    var androidPkgName = (platformConfig.android_packageName() || platformConfig.packageName()).replace(/-/g, '_');
+    const androidPkgName = (platformConfig.android_packageName() || platformConfig.packageName()).replace(/-/g, '_');
 
-    var manifest = new AndroidManifest(locations.manifest);
-    var manifestId = manifest.getPackageId();
+    // updating cdv-gradle-config with new androidPkgName.
+    const cdvGradleConfig = CordovaGradleConfigParserFactory.create(locations.root);
+    cdvGradleConfig.setPackageName(androidPkgName)
+        .write();
 
+    const manifest = new AndroidManifest(locations.manifest);
     manifest.getActivity()
         .setOrientation(platformConfig.getPreference('orientation'))
         .setLaunchMode(findAndroidLaunchModePreference(platformConfig));
 
     manifest.setVersionName(platformConfig.version())
         .setVersionCode(platformConfig.android_versionCode() || default_versionCode(platformConfig.version()))
-        .setPackageId(androidPkgName)
         .write();
 
     // Java file paths shouldn't be hard coded
-    const javaDirectory = path.join(locations.javaSrc, manifestId.replace(/\./g, '/'));
+    const javaDirectory = path.join(locations.javaSrc, androidPkgName.replace(/\./g, '/'));
     const java_files = glob.sync('**/*.java', { cwd: javaDirectory, absolute: true }).filter(f => {
         const contents = fs.readFileSync(f, 'utf-8');
         return /extends\s+CordovaActivity/.test(contents);
@@ -306,27 +310,23 @@ function updateProjectAccordingTo (platformConfig, locations) {
         events.emit('log', 'Multiple candidate Java files that extend CordovaActivity found. Guessing at the first one, ' + java_files[0]);
     }
 
-    const destFile = java_files[0];
+    const destFile = path.normalize(java_files[0]);
 
-    // var destFile = path.join(locations.root, 'app', 'src', 'main', 'java', androidPkgName.replace(/\./g, '/'), path.basename(java_files[0]));
-    // fs.ensureDirSync(path.dirname(destFile));
-    // events.emit('verbose', java_files[0]);
-    // events.emit('verbose', destFile);
-    // console.log(locations);
-    // fs.copySync(java_files[0], destFile);
-    utils.replaceFileContents(destFile, /package [\w.]*;/, 'package ' + androidPkgName + ';');
-    events.emit('verbose', 'Wrote out Android package name "' + androidPkgName + '" to ' + destFile);
-
-    var removeOrigPkg = checkReqs.isWindows() || checkReqs.isDarwin()
-        ? manifestId.toUpperCase() !== androidPkgName.toUpperCase()
-        : manifestId !== androidPkgName;
-
-    if (removeOrigPkg) {
+    // if package name has changed, path to MainActivity.java has to track it
+    const newDestFile = path.join(locations.root, 'app', 'src', 'main', 'java', androidPkgName.replace(/\./g, '/'), path.basename(destFile));
+    if (newDestFile.toLowerCase() !== destFile.toLowerCase()) {
+        // If package was name changed we need to create new java with main activity in path matching new package name
+        fs.ensureDirSync(path.dirname(newDestFile));
+        events.emit('verbose', `copy ${destFile} to ${newDestFile}`);
+        fs.copySync(destFile, newDestFile);
+        utils.replaceFileContents(newDestFile, /package [\w.]*;/, 'package ' + androidPkgName + ';');
+        events.emit('verbose', 'Wrote out Android package name "' + androidPkgName + '" to ' + newDestFile);
         // If package was name changed we need to remove old java with main activity
-        fs.removeSync(java_files[0]);
+        events.emit('verbose', `remove ${destFile}`);
+        fs.removeSync(destFile);
         // remove any empty directories
-        var currentDir = path.dirname(java_files[0]);
-        var sourcesRoot = path.resolve(locations.root, 'src');
+        let currentDir = path.dirname(destFile);
+        const sourcesRoot = path.resolve(locations.root, 'src');
         while (currentDir !== sourcesRoot) {
             if (fs.existsSync(currentDir) && fs.readdirSync(currentDir).length === 0) {
                 fs.rmdirSync(currentDir);
@@ -338,12 +338,294 @@ function updateProjectAccordingTo (platformConfig, locations) {
     }
 }
 
+/**
+ * Updates project structure and AndroidManifest according to project's configuration.
+ *
+ * @param   {ConfigParser}  platformConfig  A project's configuration that will
+ *   be used to update project
+ * @param   {Object}  locations       A map of locations for this platform
+ */
+function updateProjectStrings (platformConfig, locations) {
+    // Update app name by editing res/values/strings.xml
+    const strings = xmlHelpers.parseElementtreeSync(locations.strings);
+
+    const name = platformConfig.name();
+    strings.find('string[@name="app_name"]').text = name.replace(/'/g, '\\\'');
+
+    const shortName = platformConfig.shortName && platformConfig.shortName();
+    if (shortName && shortName !== name) {
+        strings.find('string[@name="launcher_name"]').text = shortName.replace(/'/g, '\\\'');
+    }
+
+    fs.writeFileSync(locations.strings, strings.write({ indent: 4 }), 'utf-8');
+    events.emit('verbose', 'Wrote out android application name "' + name + '" to ' + locations.strings);
+}
+
+function warnForDeprecatedSplashScreen (cordovaProject) {
+    const hasOldSplashTags = (
+        cordovaProject.projectConfig.doc.findall('./platform[@name="android"]/splash') || []
+    ).length > 0;
+
+    if (hasOldSplashTags) {
+        events.emit('warn', 'The "<splash>" tags were detected and are no longer supported. Please migrate to the "preference" tag "AndroidWindowSplashScreenAnimatedIcon".');
+    }
+}
+
+/**
+ * @param   {ConfigParser}  platformConfig  A project's configuration that will
+ *   be used to update project
+ * @param   {Object}  locations       A map of locations for this platform
+ */
+function updateProjectSplashScreen (platformConfig, locations) {
+    // res/values/themes.xml
+    const themes = xmlHelpers.parseElementtreeSync(locations.themes);
+    const splashScreenTheme = themes.find('style[@name="Theme.App.SplashScreen"]');
+
+    let splashBg = platformConfig.getPreference('AndroidWindowSplashScreenBackground', this.platform);
+    if (!splashBg) {
+        splashBg = platformConfig.getPreference('SplashScreenBackgroundColor', this.platform);
+    }
+    if (!splashBg) {
+        splashBg = platformConfig.getPreference('BackgroundColor', this.platform);
+    }
+
+    // use the user defined value for "colors.xml"
+    updateProjectSplashScreenBackgroundColor(splashBg, locations);
+
+    // force the themes value to `@color/cdv_splashscreen_background`
+    const splashBgNode = splashScreenTheme.find('item[@name="windowSplashScreenBackground"]');
+    splashBgNode.text = '@color/cdv_splashscreen_background';
+
+    [
+        'windowSplashScreenAnimatedIcon',
+        'windowSplashScreenAnimationDuration',
+        'android:windowSplashScreenBrandingImage',
+        'windowSplashScreenIconBackgroundColor',
+        'postSplashScreenTheme'
+    ].forEach(themeKey => {
+        const index = themeKey.indexOf(':') + 1;
+        const cdvConfigPrefKey = 'Android' + themeKey.charAt(index).toUpperCase() + themeKey.slice(index + 1);
+        const cdvConfigPrefValue = platformConfig.getPreference(cdvConfigPrefKey, this.platform);
+        let themeTargetNode = splashScreenTheme.find(`item[@name="${themeKey}"]`);
+
+        switch (themeKey) {
+        case 'windowSplashScreenAnimatedIcon':
+            // handle here the cases of "png" vs "xml" (drawable)
+            // If "png":
+            //  - Clear out default or previous set "drawable/ic_cdv_splashscreen.xml" if exisiting.
+            //  - Copy png in correct mipmap dir with name "ic_cdv_splashscreen.png"
+            // If "xml":
+            //  - Clear out "{mipmap}/ic_cdv_splashscreen.png" if exisiting.
+            //  - Copy xml into drawable dir with name "ic_cdv_splashscreen.xml"
+
+            // updateProjectSplashScreenIcon()
+            // value should change depending on case:
+            // If "png": "@mipmap/ic_cdv_splashscreen"
+            // If "xml": "@drawable/ic_cdv_splashscreen"
+            updateProjectSplashScreenImage(locations, themeKey, cdvConfigPrefKey, cdvConfigPrefValue);
+            break;
+
+        case 'android:windowSplashScreenBrandingImage':
+            // display warning only when set.
+            if (cdvConfigPrefValue) {
+                events.emit('warn', `"${themeKey}" is currently not supported by the splash screen compatibility library. https://issuetracker.google.com/issues/194301890`);
+            }
+
+            updateProjectSplashScreenImage(locations, themeKey, cdvConfigPrefKey, cdvConfigPrefValue);
+
+            // force the themes value to `@color/cdv_splashscreen_icon_background`
+            if (!cdvConfigPrefValue && themeTargetNode) {
+                splashScreenTheme.remove(themeTargetNode);
+                delete themes.getroot().attrib['xmlns:tools'];
+            } else if (cdvConfigPrefValue) {
+                // if there is no current node, create a new node.
+                if (!themeTargetNode) {
+                    themeTargetNode = themes.getroot().makeelement('item', { name: themeKey, 'tools:targetApi': '31' });
+                    splashScreenTheme.append(themeTargetNode);
+                    themes.getroot().attrib['xmlns:tools'] = 'http://schemas.android.com/tools';
+                }
+                // set the user defined color.
+                themeTargetNode.text = '@drawable/ic_cdv_splashscreen_branding';
+            }
+            break;
+
+        case 'windowSplashScreenIconBackgroundColor':
+            // use the user defined value for "colors.xml"
+            updateProjectSplashScreenIconBackgroundColor(cdvConfigPrefValue, locations);
+
+            // force the themes value to `@color/cdv_splashscreen_icon_background`
+            if (!cdvConfigPrefValue && themeTargetNode) {
+                // currentItem.remove();
+                splashScreenTheme.remove(themeTargetNode);
+            } else if (cdvConfigPrefValue) {
+                // if there is no current color, create a new node.
+                if (!themeTargetNode) {
+                    themeTargetNode = themes.getroot().makeelement('item', { name: themeKey });
+                    splashScreenTheme.append(themeTargetNode);
+                }
+
+                // set the user defined color.
+                themeTargetNode.text = '@color/cdv_splashscreen_icon_background';
+            }
+            break;
+
+        case 'windowSplashScreenAnimationDuration':
+            themeTargetNode.text = cdvConfigPrefValue || '200';
+            break;
+
+        case 'postSplashScreenTheme':
+            themeTargetNode.text = cdvConfigPrefValue || '@style/Theme.AppCompat.NoActionBar';
+            break;
+
+        default:
+            events.emit('warn', `The theme property "${themeKey}" does not exist`);
+        }
+    });
+
+    fs.writeFileSync(locations.themes, themes.write({ indent: 4 }), 'utf-8');
+    events.emit('verbose', 'Wrote out Android application themes to ' + locations.themes);
+}
+
+/**
+ * @param   {String}  splashBackgroundColor  SplashScreen Background Color Hex Code
+ *   be used to update project
+ * @param   {Object}  locations       A map of locations for this platform
+ */
+function updateProjectSplashScreenBackgroundColor (splashBackgroundColor, locations) {
+    if (!splashBackgroundColor) { splashBackgroundColor = '#FFFFFF'; }
+
+    // res/values/colors.xml
+    const colors = xmlHelpers.parseElementtreeSync(locations.colors);
+    colors.find('color[@name="cdv_splashscreen_background"]').text = splashBackgroundColor.replace(/'/g, '\\\'');
+
+    fs.writeFileSync(locations.colors, colors.write({ indent: 4 }), 'utf-8');
+    events.emit('verbose', 'Wrote out Android application SplashScreen Color to ' + locations.colors);
+}
+
+/**
+ * @param   {String}  splashIconBackgroundColor  SplashScreen Icon Background Color Hex Code
+ *   be used to update project
+ * @param   {Object}  locations       A map of locations for this platform
+ */
+function updateProjectSplashScreenIconBackgroundColor (splashIconBackgroundColor, locations) {
+    // res/values/colors.xml
+    const colors = xmlHelpers.parseElementtreeSync(locations.colors);
+    // node name
+    const name = 'cdv_splashscreen_icon_background';
+
+    // get the current defined color
+    let currentColor = colors.find(`color[@name="${name}"]`);
+
+    if (!splashIconBackgroundColor && currentColor) {
+        colors.getroot().remove(currentColor);
+    } else if (splashIconBackgroundColor) {
+        // if there is no current color, create a new node.
+        if (!currentColor) {
+            currentColor = colors.getroot().makeelement('color', { name });
+            colors.getroot().append(currentColor);
+        }
+
+        // set the user defined color.
+        currentColor.text = splashIconBackgroundColor.replace(/'/g, '\\\'');
+    }
+
+    // write out the changes.
+    fs.writeFileSync(locations.colors, colors.write({ indent: 4 }), 'utf-8');
+    events.emit('verbose', 'Wrote out Android application SplashScreen Icon Color to ' + locations.colors);
+}
+
+function cleanupAndSetProjectSplashScreenImage (srcFile, destFilePath, possiblePreviousDestFilePath, cleanupOnly = false) {
+    if (fs.existsSync(possiblePreviousDestFilePath)) {
+        fs.removeSync(possiblePreviousDestFilePath);
+    }
+
+    if (cleanupOnly && fs.existsSync(destFilePath)) {
+        // Also remove dest file path for cleanup even if previous was not use.
+        fs.removeSync(destFilePath);
+    }
+
+    if (!cleanupOnly && srcFile && fs.existsSync(srcFile)) {
+        fs.copySync(srcFile, destFilePath);
+    }
+}
+
+function updateProjectSplashScreenImage (locations, themeKey, cdvConfigPrefKey, cdvConfigPrefValue = '') {
+    const SPLASH_SCREEN_IMAGE_BY_THEME_KEY = {
+        windowSplashScreenAnimatedIcon: 'ic_cdv_splashscreen',
+        'android:windowSplashScreenBrandingImage': 'ic_cdv_splashscreen_branding'
+    };
+
+    const destFileName = SPLASH_SCREEN_IMAGE_BY_THEME_KEY[themeKey] || null;
+    if (!destFileName) throw new CordovaError(`${themeKey} is not valid for image detection.`);
+
+    // Default paths of where images are saved
+    const destPngDir = path.join(locations.res, 'drawable-nodpi');
+    const destXmlDir = path.join(locations.res, 'drawable');
+
+    // Dest File Name and Path
+    const destFileNameExt = destFileName + '.xml';
+    let destFilePath = path.join(destXmlDir, destFileNameExt);
+    let possiblePreviousDestFilePath = path.join(destPngDir, destFileName + '.png');
+
+    // Default Drawable Source File
+    let defaultSrcFilePath = null;
+
+    if (themeKey !== 'android:windowSplashScreenBrandingImage') {
+        try {
+            // coming from user project
+            defaultSrcFilePath = require.resolve('cordova-android/templates/project/res/drawable/' + destFileNameExt);
+        } catch (e) {
+            // coming from repo test & coho
+            defaultSrcFilePath = require.resolve('../templates/project/res/drawable/' + destFileNameExt);
+        }
+    }
+
+    if (!cdvConfigPrefValue || !fs.existsSync(cdvConfigPrefValue)) {
+        let emitType = 'verbose';
+        let emmitMessage = `The "${cdvConfigPrefKey}" is undefined. Cordova's default will be used.`;
+
+        if (cdvConfigPrefValue && !fs.existsSync(cdvConfigPrefValue)) {
+            emitType = 'warn';
+            emmitMessage = `The "${cdvConfigPrefKey}" value does not exist. Cordova's default will be used.`;
+        }
+
+        events.emit(emitType, emmitMessage);
+        const cleanupOnly = themeKey === 'android:windowSplashScreenBrandingImage';
+        cleanupAndSetProjectSplashScreenImage(defaultSrcFilePath, destFilePath, possiblePreviousDestFilePath, cleanupOnly);
+        return;
+    }
+
+    const iconExtension = path.extname(cdvConfigPrefValue).toLowerCase();
+
+    if (iconExtension === '.png') {
+        // Put the image at this location.
+        destFilePath = path.join(destPngDir, destFileName + '.png');
+
+        // Check for this file and remove.
+        possiblePreviousDestFilePath = path.join(destXmlDir, destFileName + '.xml');
+
+        // copy the png to correct mipmap folder with name of ic_cdv_splashscreen.png
+        // delete ic_cdv_splashscreen.xml from drawable folder
+        // update themes.xml windowSplashScreenAnimatedIcon value to @mipmap/ic_cdv_splashscreen
+        cleanupAndSetProjectSplashScreenImage(cdvConfigPrefValue, destFilePath, possiblePreviousDestFilePath);
+    } else if (iconExtension === '.xml') {
+        // copy the xml to drawable folder with name of ic_cdv_splashscreen.xml
+        // delete ic_cdv_splashscreen.png from mipmap folder
+        // update themes.xml windowSplashScreenAnimatedIcon value to @drawable/ic_cdv_splashscreen
+        cleanupAndSetProjectSplashScreenImage(cdvConfigPrefValue, destFilePath, possiblePreviousDestFilePath);
+    } else {
+        // use the default destFilePath & possiblePreviousDestFilePath, no update require.
+        events.emit('warn', `The "${cdvConfigPrefKey}" had an unsupported extension. Cordova's default will be used.`);
+        cleanupAndSetProjectSplashScreenImage(defaultSrcFilePath, destFilePath, possiblePreviousDestFilePath);
+    }
+}
+
 // Consturct the default value for versionCode as
 // PATCH + MINOR * 100 + MAJOR * 10000
 // see http://developer.android.com/tools/publishing/versioning.html
 function default_versionCode (version) {
-    var nums = version.split('-')[0].split('.');
-    var versionCode = 0;
+    const nums = version.split('-')[0].split('.');
+    let versionCode = 0;
     if (+nums[0]) {
         versionCode += +nums[0] * 10000;
     }
@@ -361,7 +643,8 @@ function default_versionCode (version) {
 function getImageResourcePath (resourcesDir, type, density, name, sourceName) {
     // Use same extension as source with special case for 9-Patch files
     const ext = sourceName.endsWith('.9.png')
-        ? '.9.png' : path.extname(sourceName).toLowerCase();
+        ? '.9.png'
+        : path.extname(sourceName).toLowerCase();
 
     const subDir = density ? `${type}-${density}` : type;
     return path.join(resourcesDir, subDir, name + ext);
@@ -371,70 +654,8 @@ function getAdaptiveImageResourcePath (resourcesDir, type, density, name, source
     if (/\.9\.png$/.test(sourceName)) {
         name = name.replace(/\.png$/, '.9.png');
     }
-    var resourcePath = path.join(resourcesDir, (density ? type + '-' + density + '-v26' : type), name);
+    const resourcePath = path.join(resourcesDir, (density ? type + '-' + density + '-v26' : type), name);
     return resourcePath;
-}
-
-function makeSplashCleanupMap (projectRoot, resourcesDir) {
-    // Build an initial resource map that deletes all existing splash screens
-    const existingSplashPaths = glob.sync(
-        `${resourcesDir.replace(/\\/g, '/')}/drawable-*/screen.{png,9.png,webp,jpg,jpeg}`,
-        { cwd: projectRoot }
-    );
-    return makeCleanResourceMap(existingSplashPaths);
-}
-
-function updateSplashes (cordovaProject, platformResourcesDir) {
-    var resources = cordovaProject.projectConfig.getSplashScreens('android');
-
-    // if there are no "splash" elements in config.xml
-    if (resources.length === 0) {
-        events.emit('verbose', 'This app does not have splash screens defined');
-        // We must not return here!
-        // If the user defines no splash screens, the cleanup map will cause any
-        // existing splash screen images (e.g. the defaults that we copy into a
-        // new app) to be removed from the app folder, which is what we want.
-    }
-
-    // Build an initial resource map that deletes all existing splash screens
-    const resourceMap = makeSplashCleanupMap(cordovaProject.root, platformResourcesDir);
-
-    var hadMdpi = false;
-    resources.forEach(function (resource) {
-        if (!resource.density) {
-            return;
-        }
-        if (resource.density === 'mdpi') {
-            hadMdpi = true;
-        }
-        var targetPath = getImageResourcePath(
-            platformResourcesDir, 'drawable', resource.density, 'screen', path.basename(resource.src));
-        resourceMap[targetPath] = resource.src;
-    });
-
-    // There's no "default" drawable, so assume default == mdpi.
-    if (!hadMdpi && resources.defaultResource) {
-        var targetPath = getImageResourcePath(
-            platformResourcesDir, 'drawable', 'mdpi', 'screen', path.basename(resources.defaultResource.src));
-        resourceMap[targetPath] = resources.defaultResource.src;
-    }
-
-    events.emit('verbose', 'Updating splash screens at ' + platformResourcesDir);
-    FileUpdater.updatePaths(
-        resourceMap, { rootDir: cordovaProject.root }, logFileOp);
-}
-
-function cleanSplashes (projectRoot, projectConfig, platformResourcesDir) {
-    var resources = projectConfig.getSplashScreens('android');
-    if (resources.length > 0) {
-        const resourceMap = makeSplashCleanupMap(projectRoot, platformResourcesDir);
-
-        events.emit('verbose', 'Cleaning splash screens at ' + platformResourcesDir);
-
-        // No source paths are specified in the map, so updatePaths() will delete the target files.
-        FileUpdater.updatePaths(
-            resourceMap, { rootDir: projectRoot, all: true }, logFileOp);
-    }
 }
 
 function updateIcons (cordovaProject, platformResourcesDir) {
@@ -495,8 +716,10 @@ function updateIcons (cordovaProject, platformResourcesDir) {
         mapImageResources(cordovaProject.root, platformResourcesDir, 'mipmap', 'ic_launcher.png'),
         mapImageResources(cordovaProject.root, platformResourcesDir, 'mipmap', 'ic_launcher_foreground.png'),
         mapImageResources(cordovaProject.root, platformResourcesDir, 'mipmap', 'ic_launcher_background.png'),
+        mapImageResources(cordovaProject.root, platformResourcesDir, 'mipmap', 'ic_launcher_monochrome.png'),
         mapImageResources(cordovaProject.root, platformResourcesDir, 'mipmap', 'ic_launcher_foreground.xml'),
         mapImageResources(cordovaProject.root, platformResourcesDir, 'mipmap', 'ic_launcher_background.xml'),
+        mapImageResources(cordovaProject.root, platformResourcesDir, 'mipmap', 'ic_launcher_monochrome.xml'),
         mapImageResources(cordovaProject.root, platformResourcesDir, 'mipmap', 'ic_launcher.xml')
     );
 
@@ -516,21 +739,42 @@ function updateIconResourceForAdaptive (preparedIcons, resourceMap, platformReso
     const android_icons = preparedIcons.android_icons;
     const default_icon = preparedIcons.default_icon;
 
-    // The source paths for icons and splashes are relative to
+    // The source paths for icons are relative to
     // project's config.xml location, so we use it as base path.
     let background;
     let foreground;
+    let monochrome;
     let targetPathBackground;
     let targetPathForeground;
+    let targetPathMonochrome;
 
     for (const density in android_icons) {
         let backgroundVal = '@mipmap/ic_launcher_background';
         let foregroundVal = '@mipmap/ic_launcher_foreground';
+        const monochromeVal = '@mipmap/ic_launcher_monochrome';
 
         background = android_icons[density].background;
         foreground = android_icons[density].foreground;
+        monochrome = android_icons[density].monochrome;
 
-        if (!background || !foreground) {
+        const hasAdaptiveIcons = !!background && !!foreground;
+        let hasMonochromeIcon = !!monochrome;
+
+        if (hasMonochromeIcon && !hasAdaptiveIcons) {
+            // If we have a monochrome icon, but no adaptive icons,
+            // then warn that in order to use monochrome, the adaptive icons
+            // must be supplied. We will ignore monochrome and proceed with the
+            // icon preparation however.
+            hasMonochromeIcon = false;
+            monochrome = undefined;
+            events.emit('warn', dedent`
+                Monochrome icon found but without adaptive properties.
+                Monochrome icon requires the adaptive background and foreground assets.
+                See https://cordova.apache.org/docs/en/latest/config_ref/images.html fore more information.
+            `);
+        }
+
+        if (!hasAdaptiveIcons) {
             // This icon isn't an adaptive icon, so skip it
             continue;
         }
@@ -561,12 +805,38 @@ function updateIconResourceForAdaptive (preparedIcons, resourceMap, platformReso
             resourceMap[targetPathForeground] = android_icons[density].foreground;
         }
 
+        if (hasMonochromeIcon) {
+            if (path.extname(path.basename(monochrome)) === '.xml') {
+                // Vector Use Case
+                targetPathMonochrome = getAdaptiveImageResourcePath(platformResourcesDir, 'mipmap', density, 'ic_launcher_monochrome.xml', path.basename(android_icons[density].monochrome));
+                resourceMap[targetPathMonochrome] = android_icons[density].monochrome;
+            } else if (path.extname(path.basename(monochrome)) === '.png') {
+                // Images Use Case
+                targetPathMonochrome = getAdaptiveImageResourcePath(platformResourcesDir, 'mipmap', density, 'ic_launcher_monochrome.png', path.basename(android_icons[density].monochrome));
+                resourceMap[targetPathMonochrome] = android_icons[density].monochrome;
+            }
+        }
+
         // create an XML for DPI and set color
-        const icLauncherTemplate = `<?xml version="1.0" encoding="utf-8"?>
-<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="` + backgroundVal + `" />
-    <foreground android:drawable="` + foregroundVal + `" />
-</adaptive-icon>`;
+        let icLauncherTemplate = '';
+        if (hasMonochromeIcon) {
+            icLauncherTemplate = dedent`
+                <?xml version="1.0" encoding="utf-8"?>
+                <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+                    <background android:drawable="${backgroundVal}" />
+                    <foreground android:drawable="${foregroundVal}" />
+                    <monochrome android:drawable="${monochromeVal}" />
+                </adaptive-icon>
+            `;
+        } else {
+            icLauncherTemplate = dedent`
+                <?xml version="1.0" encoding="utf-8"?>
+                <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+                    <background android:drawable="${backgroundVal}" />
+                    <foreground android:drawable="${foregroundVal}" />
+                </adaptive-icon>
+            `;
+        }
 
         const launcherXmlPath = path.join(platformResourcesDir, 'mipmap-' + density + '-v26', 'ic_launcher.xml');
 
@@ -580,6 +850,7 @@ function updateIconResourceForAdaptive (preparedIcons, resourceMap, platformReso
     if (default_icon && !android_icons.mdpi) {
         let defaultTargetPathBackground;
         let defaultTargetPathForeground;
+        let defaultTargetPathMonochrome;
 
         if (background.startsWith('@color')) {
             // Colors Use Case
@@ -606,6 +877,18 @@ function updateIconResourceForAdaptive (preparedIcons, resourceMap, platformReso
             defaultTargetPathForeground = getAdaptiveImageResourcePath(platformResourcesDir, 'mipmap', 'mdpi', 'ic_launcher_foreground.png', path.basename(default_icon.foreground));
             resourceMap[defaultTargetPathForeground] = default_icon.foreground;
         }
+
+        if (monochrome) {
+            if (path.extname(path.basename(monochrome)) === '.xml') {
+                // Vector Use Case
+                defaultTargetPathMonochrome = getAdaptiveImageResourcePath(platformResourcesDir, 'mipmap', 'mdpi', 'ic_launcher_monochrome.xml', path.basename(default_icon.monochrome));
+                resourceMap[defaultTargetPathMonochrome] = default_icon.monochrome;
+            } else if (path.extname(path.basename(monochrome)) === '.png') {
+                // Images Use Case
+                defaultTargetPathMonochrome = getAdaptiveImageResourcePath(platformResourcesDir, 'mipmap', 'mdpi', 'ic_launcher_monochrome.png', path.basename(default_icon.monochrome));
+                resourceMap[defaultTargetPathMonochrome] = default_icon.monochrome;
+            }
+        }
     }
 
     return resourceMap;
@@ -615,16 +898,16 @@ function updateIconResourceForLegacy (preparedIcons, resourceMap, platformResour
     const android_icons = preparedIcons.android_icons;
     const default_icon = preparedIcons.default_icon;
 
-    // The source paths for icons and splashes are relative to
+    // The source paths for icons are relative to
     // project's config.xml location, so we use it as base path.
-    for (var density in android_icons) {
-        var targetPath = getImageResourcePath(platformResourcesDir, 'mipmap', density, 'ic_launcher', path.basename(android_icons[density].src));
+    for (const density in android_icons) {
+        const targetPath = getImageResourcePath(platformResourcesDir, 'mipmap', density, 'ic_launcher', path.basename(android_icons[density].src));
         resourceMap[targetPath] = android_icons[density].src;
     }
 
     // There's no "default" drawable, so assume default == mdpi.
     if (default_icon && !android_icons.mdpi) {
-        var defaultTargetPath = getImageResourcePath(platformResourcesDir, 'mipmap', 'mdpi', 'ic_launcher', path.basename(default_icon.src));
+        const defaultTargetPath = getImageResourcePath(platformResourcesDir, 'mipmap', 'mdpi', 'ic_launcher', path.basename(default_icon.src));
         resourceMap[defaultTargetPath] = default_icon.src;
     }
 
@@ -647,14 +930,14 @@ function prepareIcons (icons) {
 
     // find the best matching icon for a given density or size
     // @output android_icons
-    var parseIcon = function (icon, icon_size) {
+    const parseIcon = function (icon, icon_size) {
         // do I have a platform icon for that density already
-        var density = icon.density || SIZE_TO_DENSITY_MAP[icon_size];
+        const density = icon.density || SIZE_TO_DENSITY_MAP[icon_size];
         if (!density) {
             // invalid icon defition ( or unsupported size)
             return;
         }
-        var previous = android_icons[density];
+        const previous = android_icons[density];
         if (previous && previous.platform) {
             return;
         }
@@ -662,9 +945,9 @@ function prepareIcons (icons) {
     };
 
     // iterate over all icon elements to find the default icon and call parseIcon
-    for (var i = 0; i < icons.length; i++) {
-        var icon = icons[i];
-        var size = icon.width;
+    for (let i = 0; i < icons.length; i++) {
+        const icon = icons[i];
+        let size = icon.width;
 
         if (!size) {
             size = icon.height;
@@ -676,6 +959,11 @@ function prepareIcons (icons) {
                 const favor = {};
 
                 // populating found icon.
+                if (icon.background && icon.foreground && icon.monochrome) {
+                    found.background = icon.background;
+                    found.foreground = icon.foreground;
+                    found.monochrome = icon.monochrome;
+                }
                 if (icon.background && icon.foreground) {
                     found.background = icon.background;
                     found.foreground = icon.foreground;
@@ -684,6 +972,11 @@ function prepareIcons (icons) {
                     found.src = icon.src;
                 }
 
+                if (default_icon.background && default_icon.foreground && default_icon.monochrome) {
+                    favor.background = default_icon.background;
+                    favor.foreground = default_icon.foreground;
+                    favor.monochrome = default_icon.monochrome;
+                }
                 if (default_icon.background && default_icon.foreground) {
                     favor.background = default_icon.background;
                     favor.foreground = default_icon.foreground;
@@ -702,13 +995,13 @@ function prepareIcons (icons) {
     }
 
     return {
-        android_icons: android_icons,
-        default_icon: default_icon
+        android_icons,
+        default_icon
     };
 }
 
 function cleanIcons (projectRoot, projectConfig, platformResourcesDir) {
-    var icons = projectConfig.getIcons('android');
+    const icons = projectConfig.getIcons('android');
 
     // Skip if there are no app defined icons in config.xml
     if (icons.length === 0) {
@@ -721,8 +1014,10 @@ function cleanIcons (projectRoot, projectConfig, platformResourcesDir) {
         mapImageResources(projectRoot, platformResourcesDir, 'mipmap', 'ic_launcher.png'),
         mapImageResources(projectRoot, platformResourcesDir, 'mipmap', 'ic_launcher_foreground.png'),
         mapImageResources(projectRoot, platformResourcesDir, 'mipmap', 'ic_launcher_background.png'),
+        mapImageResources(projectRoot, platformResourcesDir, 'mipmap', 'ic_launcher_monochrome.png'),
         mapImageResources(projectRoot, platformResourcesDir, 'mipmap', 'ic_launcher_foreground.xml'),
         mapImageResources(projectRoot, platformResourcesDir, 'mipmap', 'ic_launcher_background.xml'),
+        mapImageResources(projectRoot, platformResourcesDir, 'mipmap', 'ic_launcher_monochrome.xml'),
         mapImageResources(projectRoot, platformResourcesDir, 'mipmap', 'ic_launcher.xml')
     );
 
@@ -745,18 +1040,8 @@ function mapImageResources (rootDir, subDir, type, resourceName) {
     return pathMap;
 }
 
-/** Returns resource map that deletes all given paths */
-function makeCleanResourceMap (resourcePaths) {
-    const pathMap = {};
-    resourcePaths.map(path.normalize)
-        .forEach(resourcePath => {
-            pathMap[resourcePath] = null;
-        });
-    return pathMap;
-}
-
 function updateFileResources (cordovaProject, platformDir) {
-    var files = cordovaProject.projectConfig.getFileResources('android');
+    const files = cordovaProject.projectConfig.getFileResources('android');
 
     // if there are resource-file elements in config.xml
     if (files.length === 0) {
@@ -764,9 +1049,9 @@ function updateFileResources (cordovaProject, platformDir) {
         return;
     }
 
-    var resourceMap = {};
+    const resourceMap = {};
     files.forEach(function (res) {
-        var targetPath = path.join(platformDir, res.target);
+        const targetPath = path.join(platformDir, res.target);
         resourceMap[targetPath] = res.src;
     });
 
@@ -776,13 +1061,13 @@ function updateFileResources (cordovaProject, platformDir) {
 }
 
 function cleanFileResources (projectRoot, projectConfig, platformDir) {
-    var files = projectConfig.getFileResources('android', true);
+    const files = projectConfig.getFileResources('android', true);
     if (files.length > 0) {
         events.emit('verbose', 'Cleaning resource files at ' + platformDir);
 
-        var resourceMap = {};
+        const resourceMap = {};
         files.forEach(function (res) {
-            var filePath = path.join(platformDir, res.target);
+            const filePath = path.join(platformDir, res.target);
             resourceMap[filePath] = null;
         });
 
@@ -803,14 +1088,14 @@ function cleanFileResources (projectRoot, projectConfig, platformDir) {
  *   'singleTop'
  */
 function findAndroidLaunchModePreference (platformConfig) {
-    var launchMode = platformConfig.getPreference('AndroidLaunchMode');
+    const launchMode = platformConfig.getPreference('AndroidLaunchMode');
     if (!launchMode) {
         // Return a default value
         return 'singleTop';
     }
 
-    var expectedValues = ['standard', 'singleTop', 'singleTask', 'singleInstance'];
-    var valid = expectedValues.indexOf(launchMode) >= 0;
+    const expectedValues = ['standard', 'singleTop', 'singleTask', 'singleInstance'];
+    const valid = expectedValues.indexOf(launchMode) >= 0;
     if (!valid) {
         // Note: warn, but leave the launch mode as developer wanted, in case the list of options changes in the future
         events.emit('warn', 'Unrecognized value for AndroidLaunchMode preference: ' +

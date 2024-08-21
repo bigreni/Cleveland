@@ -14,26 +14,44 @@
   "license": "Apache-2.0",
   "cordova": {
     "plugins": {
-      "cordova-plugin-admobpro": {},
-      "cordova-admobsdk": {},
-      "cordova-plugin-idfa": {},
+      "cordova-plugin-inappbrowser": {},
       "cordova-plugin-wkwebview-file-xhr": {},
-      "cordova-plugin-inappbrowser": {}
+      "cordova-plugin-purchase": {},
+      "cordova-plugin-device": {},
+      "cordova-plugin-geolocation": {
+        "GPS_REQUIRED": "true"
+      },
+      "cordova-plugin-apprate": {
+        "PLAY_REVIEW_VERSION": "2.+"
+      },
+      "cordova-plugin-idfa": {
+        "ANDROID_PLAY_ADID_VERSION": "17.0.+"
+      },
+      "admob-plus-cordova": {
+        "APP_ID_ANDROID": "ca-app-pub-9249695405712287~1939951954",
+        "APP_ID_IOS": "ca-app-pub-9249695405712287~5635863154",
+        "PLAY_SERVICES_VERSION": "23.0.0",
+        "USAGE": "This identifier will be used to deliver personalized ads to you.",
+        "DISABLESDKCRASHREPORTING": "false"
+      }
     },
     "platforms": [
-      "android",
-      "ios"
+      "android"
     ]
   },
   "devDependencies": {
-    "cordova-admobsdk": "^8.13.0",
-    "cordova-android": "^10.1.2",
-    "cordova-ios": "^6.2.0",
-    "cordova-plugin-admobpro": "^8.13.1",
-    "cordova-plugin-extension": "^1.6.0",
-    "cordova-plugin-idfa": "^2.1.0",
-    "cordova-plugin-inappbrowser": "^5.0.0",
-    "cordova-plugin-wkwebview-file-xhr": "^3.1.0",
+    "cordova-android": "^13.0.0",
+    "cordova-plugin-apprate": "^1.8.0",
+    "cordova-plugin-device": "^3.0.0",
+    "cordova-plugin-geolocation": "^5.0.0",
+    "cordova-plugin-idfa": "^3.0.0",
+    "cordova-plugin-inappbrowser": "^6.0.0",
+    "cordova-plugin-nativestorage": "^2.3.2",
+    "cordova-plugin-purchase": "^13.11.1",
+    "cordova-plugin-wkwebview-file-xhr": "^3.1.1",
     "cordova-support-android-plugin": "~2.0.4"
+  },
+  "dependencies": {
+    "admob-plus-cordova": "2.0.0-alpha.18"
   }
 }

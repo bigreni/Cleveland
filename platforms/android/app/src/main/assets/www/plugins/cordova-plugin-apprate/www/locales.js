@@ -155,7 +155,7 @@ Locales.addLocale({
 Locales.addLocale({
   language: 'en',
   title: "Would you mind rating %@?",
-  message: "It won’t take more than a minute and helps to promote our app. Thanks for your support!",
+  message: "It won't take more than a minute and helps to promote our app. Thanks for your support!",
   cancelButtonLabel: "No, Thanks",
   laterButtonLabel: "Remind Me Later",
   rateButtonLabel: "Rate It Now",
@@ -218,14 +218,14 @@ Locales.addLocale({
 Locales.addLocale({
   language: 'fr',
   title: "Notez %@",
-  message: "Si vous aimez utiliser %@, n’oubliez pas de voter sur l’App Store. Cela ne prend qu’une minute. Merci d’avance pour votre soutien !",
+  message: "Si vous aimez utiliser %@, n’oubliez pas de la noter sur le store. Cela ne prend qu’une minute. Merci d’avance pour votre soutien !",
   cancelButtonLabel: "Non, merci",
   laterButtonLabel: "Me le rappeler ultérieurement",
-  rateButtonLabel: "Votez maintenant",
+  rateButtonLabel: "Notez maintenant",
   yesButtonLabel: "Oui",
   noButtonLabel: "Non, merci",
   appRatePromptTitle: "Vous aimez %@",
-  feedbackPromptTitle: "Voulez-vous voter sur l'App Store?",
+  feedbackPromptTitle: "Voulez-vous noter sur le store?",
   appRatePromptMessage:"",
   feedbackPromptMessage:""
 });
@@ -336,6 +336,21 @@ Locales.addLocale({
   yesButtonLabel: "Sim!",
   noButtonLabel: "Não",
   appRatePromptTitle: "Você gosta de usar %@",
+  feedbackPromptTitle: "Poderia nos dar um feedback?",
+  appRatePromptMessage: "",
+  feedbackPromptMessage: ""
+});
+
+Locales.addLocale({
+  language: 'pt-BR',
+  title: "Gostaria de avaliar %@?",
+  message: "Se gostou de utilizar o %@, importa-se de avaliá-lo? Não vai demorar mais do que um minuto. Obrigado pelo seu apoio!",
+  cancelButtonLabel: "Não, obrigado",
+  laterButtonLabel: "Lembrar mais tarde",
+  rateButtonLabel: "Avaliar agora",
+  yesButtonLabel: "Sim!",
+  noButtonLabel: "Não",
+  appRatePromptTitle: "Você gosta de utilizar %@?",
   feedbackPromptTitle: "Poderia nos dar um feedback?",
   appRatePromptMessage: "",
   feedbackPromptMessage: ""

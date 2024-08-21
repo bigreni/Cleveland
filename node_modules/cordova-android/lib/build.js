@@ -17,15 +17,16 @@
        under the License.
 */
 
-var path = require('path');
-var fs = require('fs');
-var nopt = require('nopt');
+const path = require('path');
+const fs = require('fs');
+const nopt = require('nopt');
 const untildify = require('untildify');
+const { parseArgsStringToArgv } = require('string-argv');
 
-var Adb = require('./Adb');
+const Adb = require('./Adb');
 
-var events = require('cordova-common').events;
-var PackageType = require('./PackageType');
+const events = require('cordova-common').events;
+const PackageType = require('./PackageType');
 
 module.exports.parseBuildOptions = parseOpts;
 function parseOpts (options, resolvedTarget, projectRoot) {
@@ -36,7 +37,11 @@ function parseOpts (options, resolvedTarget, projectRoot) {
         minSdkVersion: String,
         maxSdkVersion: String,
         targetSdkVersion: String,
+
+        // This needs to be an array since nopts will parse its entries as further options for this process
+        // It will be an array of 1 string: [ "string args" ]
         gradleArg: [String, Array],
+
         keystore: path,
         alias: String,
         storePassword: String,
@@ -46,7 +51,7 @@ function parseOpts (options, resolvedTarget, projectRoot) {
     }, {}, options.argv, 0);
 
     // Android Studio Build method is the default
-    var ret = {
+    const ret = {
         buildType: options.release ? 'release' : 'debug',
         prepEnv: options.argv.prepenv,
         arch: resolvedTarget && resolvedTarget.arch,
@@ -58,10 +63,11 @@ function parseOpts (options, resolvedTarget, projectRoot) {
     if (options.argv.maxSdkVersion) { ret.extraArgs.push('-PcdvMaxSdkVersion=' + options.argv.maxSdkVersion); }
     if (options.argv.targetSdkVersion) { ret.extraArgs.push('-PcdvTargetSdkVersion=' + options.argv.targetSdkVersion); }
     if (options.argv.gradleArg) {
-        ret.extraArgs = ret.extraArgs.concat(options.argv.gradleArg);
+        const gradleArgs = parseArgsStringToArgv(options.argv.gradleArg[0]);
+        ret.extraArgs = ret.extraArgs.concat(gradleArgs);
     }
 
-    var packageArgs = {};
+    const packageArgs = {};
 
     if (options.argv.keystore) { packageArgs.keystore = path.relative(projectRoot, path.resolve(options.argv.keystore)); }
 
@@ -69,7 +75,7 @@ function parseOpts (options, resolvedTarget, projectRoot) {
         if (options.argv[flagName]) { packageArgs[flagName] = options.argv[flagName]; }
     });
 
-    var buildConfig = options.buildConfig;
+    const buildConfig = options.buildConfig;
 
     // If some values are not specified as command line arguments - use build config to supplement them.
     // Command line arguments have precedence over build config.
@@ -78,10 +84,10 @@ function parseOpts (options, resolvedTarget, projectRoot) {
             throw new Error('Specified build config file does not exist: ' + buildConfig);
         }
         events.emit('log', 'Reading build config file: ' + path.resolve(buildConfig));
-        var buildjson = fs.readFileSync(buildConfig, 'utf8');
-        var config = JSON.parse(buildjson.replace(/^\ufeff/, '')); // Remove BOM
+        const buildjson = fs.readFileSync(buildConfig, 'utf8');
+        const config = JSON.parse(buildjson.replace(/^\ufeff/, '')); // Remove BOM
         if (config.android && config.android[ret.buildType]) {
-            var androidInfo = config.android[ret.buildType];
+            const androidInfo = config.android[ret.buildType];
             if (androidInfo.keystore && !packageArgs.keystore) {
                 androidInfo.keystore = untildify(androidInfo.keystore);
                 packageArgs.keystore = path.resolve(path.dirname(buildConfig), androidInfo.keystore);
@@ -144,8 +150,8 @@ function parseOpts (options, resolvedTarget, projectRoot) {
  * Returns a promise.
  */
 module.exports.runClean = function (options) {
-    var opts = parseOpts(options, null, this.root);
-    var builder = this._builder;
+    const opts = parseOpts(options, null, this.root);
+    const builder = this._builder;
 
     return builder.prepEnv(opts).then(function () {
         return builder.clean(opts);
@@ -165,8 +171,8 @@ module.exports.runClean = function (options) {
  *   information.
  */
 module.exports.run = function (options, optResolvedTarget) {
-    var opts = parseOpts(options, optResolvedTarget, this.root);
-    var builder = this._builder;
+    const opts = parseOpts(options, optResolvedTarget, this.root);
+    const builder = this._builder;
 
     return builder.prepEnv(opts).then(function () {
         if (opts.prepEnv) {
@@ -174,7 +180,7 @@ module.exports.run = function (options, optResolvedTarget) {
             return;
         }
         return builder.build(opts).then(function () {
-            var paths;
+            let paths;
             if (opts.packageType === PackageType.BUNDLE) {
                 paths = builder.findOutputBundles(opts.buildType);
                 events.emit('log', 'Built the following bundle(s): \n\t' + paths.join('\n\t'));
@@ -184,7 +190,7 @@ module.exports.run = function (options, optResolvedTarget) {
             }
 
             return {
-                paths: paths,
+                paths,
                 buildType: opts.buildType
             };
         });
@@ -202,17 +208,17 @@ module.exports.detectArchitecture = function (target) {
 };
 
 module.exports.findBestApkForArchitecture = function (buildResults, arch) {
-    var paths = buildResults.apkPaths.filter(function (p) {
-        var apkName = path.basename(p);
+    const paths = buildResults.apkPaths.filter(function (p) {
+        const apkName = path.basename(p);
         if (buildResults.buildType === 'debug') {
             return /-debug/.exec(apkName);
         }
         return !/-debug/.exec(apkName);
     });
-    var archPattern = new RegExp('-' + arch);
-    var hasArchPattern = /-x86|-arm/;
-    for (var i = 0; i < paths.length; ++i) {
-        var apkName = path.basename(paths[i]);
+    const archPattern = new RegExp('-' + arch);
+    const hasArchPattern = /-x86|-arm/;
+    for (let i = 0; i < paths.length; ++i) {
+        const apkName = path.basename(paths[i]);
         if (hasArchPattern.exec(apkName)) {
             if (archPattern.exec(apkName)) {
                 return paths[i];

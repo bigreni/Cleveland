@@ -20,6 +20,134 @@
 -->
 ## Release Notes for Cordova (Android)
 
+### 13.0.0 (May 15, 2024)
+
+**Breaking Changes:**
+
+* [GH-1678](https://github.com/apache/cordova-android/pull/1678) feat!: API 34 Support
+* [GH-1543](https://github.com/apache/cordova-android/pull/1543) feat!: bump `kotlin@1.9.24` & drop `kotlin-android-extensions` when kotlin `>=1.8.0`
+
+**Features:**
+
+* [GH-1700](https://github.com/apache/cordova-android/pull/1700) feat(splash): Support `SplashScreenBackgroundColor` preference
+* [GH-1609](https://github.com/apache/cordova-android/pull/1609) feat: add camera intent with file input capture
+* [GH-1696](https://github.com/apache/cordova-android/pull/1696) feat: Add `ResolveServiceWorkerRequests` preference
+
+**Chores, Dependencies & CI:**
+
+* [GH-1677](https://github.com/apache/cordova-android/pull/1677) chore(deps-dev): bump `@babel/traverse` from `7.22.10` to `7.23.2`
+* [GH-1713](https://github.com/apache/cordova-android/pull/1713) dep: bump npm dependencies 20240515
+  * `semver@7.6.2`
+  * `rewire@7.0.0`
+  * `nopt@7.2.1`
+  * `jasmine@5.1.0`
+  * `fs-extra@11.2.0`
+  * `fast-glob@3.3.2`
+  * `dedent@1.5.3`
+  * `@cordova/eslint-config@5.1.0`
+  * `which@4.0.0`
+  * `properties-parser@0.6.0`
+  * `android-versions@2.0.0`
+* [GH-1711](https://github.com/apache/cordova-android/pull/1711) ci: Set up CodeQL analysis w/ fixes
+* [GH-1687](https://github.com/apache/cordova-android/pull/1687) ci(release-audit): add license header and dependency checker
+* [GH-1703](https://github.com/apache/cordova-android/pull/1703) ci: update `codecov@v4` w/ token
+
+### 12.0.1 (Aug 23, 2023)
+
+* [GH-1632](https://github.com/apache/cordova-android/pull/1632) fix(android): `monochrome` checks
+* [GH-1649](https://github.com/apache/cordova-android/pull/1649) chore: rebuild `package-lock` w/ lint corrections
+
+### 12.0.0 (May 20, 2023)
+
+**Breaking:**
+
+* [GH-1605](https://github.com/apache/cordova-android/pull/1605) fix!: Make `CoreAndroid` plugin instantiate on load
+* [GH-1539](https://github.com/apache/cordova-android/pull/1539) feat!: bump Gradle 7.6 & AGP 7.4.2
+* [GH-1571](https://github.com/apache/cordova-android/pull/1571) feat!: bump min SDK to 24
+* [GH-1538](https://github.com/apache/cordova-android/pull/1538) feat!: bump target sdk & build tools for SDK 33 support
+* [GH-1540](https://github.com/apache/cordova-android/pull/1540) feat!: bump node engine requirement `>=16.13.0`
+* [GH-1597](https://github.com/apache/cordova-android/pull/1597) deprecate: `CoreAndroid.getBuildConfigValue`
+* [GH-1541](https://github.com/apache/cordova-android/pull/1541) dep(npm)!: bump acceptable modules w/ rebuilt `package-lock`
+* [GH-1566](https://github.com/apache/cordova-android/pull/1566) dep(npm)!: bump `cordova-common@5.0.0`
+
+**Features:**
+
+* [GH-1602](https://github.com/apache/cordova-android/pull/1602) feat: add `listTarget` api
+* [GH-1574](https://github.com/apache/cordova-android/pull/1574) feat: add plugin hooks for `WebViewClient.onRenderProcessGone`
+* [GH-1594](https://github.com/apache/cordova-android/pull/1594) feat: bump default `kotlin` to version 1.7.21
+* [GH-1550](https://github.com/apache/cordova-android/pull/1550) feat: add `monochrome` app icon support
+* [GH-1589](https://github.com/apache/cordova-android/pull/1589) feat: `InspectableWebview` preference
+* [GH-1568](https://github.com/apache/cordova-android/pull/1568) feat: bump `androidx.appcompat.appcompat` 1.6.1
+* [GH-1567](https://github.com/apache/cordova-android/pull/1567) feat: bump `androidx.webkit.webkit` 1.6.0
+* [GH-1545](https://github.com/apache/cordova-android/pull/1545) feat: bump `androidx.webkit.webkit` 1.5.0
+* [GH-1547](https://github.com/apache/cordova-android/pull/1547) feat: bump `com.google.gms.google-services` 4.3.15
+* [GH-1546](https://github.com/apache/cordova-android/pull/1546) feat: bump `androidx.core.core-splashscreen` 1.0.0
+* [GH-1544](https://github.com/apache/cordova-android/pull/1544) feat: bump `androidx.appcompat.appcompat` 1.5.1
+
+**Fixes:**
+
+* [GH-1606](https://github.com/apache/cordova-android/pull/1606) fix: Gradle Args parsing
+* [GH-1575](https://github.com/apache/cordova-android/pull/1575) fix(`BuildHelper`): get package name from `ApplicationInfo`
+* [GH-1595](https://github.com/apache/cordova-android/pull/1595) fix(test): Native test namespace refactor
+* [GH-1471](https://github.com/apache/cordova-android/pull/1471) fix: `ANDROID_HOME` is the new default, to check first and give advice
+* [GH-1573](https://github.com/apache/cordova-android/pull/1573) fix(GH-1432): Default `content` `src` when content tag is missing
+* [GH-1506](https://github.com/apache/cordova-android/pull/1506) fix: only do fadeout animation if `FadeSplashScreen` is true
+* [GH-1505](https://github.com/apache/cordova-android/pull/1505) fix: correctly flag API dependency on `AppCompat` for Maven
+* [GH-1487](https://github.com/apache/cordova-android/pull/1487) fix: Add **Android** prefix to `WindowSplashScreenBrandingImage`
+* [GH-1489](https://github.com/apache/cordova-android/pull/1489) fix: import type definitions from obsolete `cordova-plugin-splashscreen`
+
+**Chores, Refactor,  Dependencies & CI:**
+
+* [GH-1493](https://github.com/apache/cordova-android/pull/1493) chore: add `lint:fix` script for fixing lint errors
+* [GH-1491](https://github.com/apache/cordova-android/pull/1491) chore: Use gradle 7.4.2 distribution url
+* [GH-1588](https://github.com/apache/cordova-android/pull/1588) refactor: Removed obsolete version code checks
+* [GH-1492](https://github.com/apache/cordova-android/pull/1492) refactor: replace deprecated `Handler` constructor
+* [GH-1587](https://github.com/apache/cordova-android/pull/1587) dep: bump npm dependencies
+  * `fs-extra@11.1.1`
+  * `nopt@7.1.0`
+  * `@cordova/eslint-config@5.0.0`
+  * `jasmine@4.6.0`
+* [GH-1607](https://github.com/apache/cordova-android/pull/1607) ci: Added NodeJS 20.x to the workflow matrix
+* [GH-1542](https://github.com/apache/cordova-android/pull/1542) ci(workflow): update `codecov/codecov-action@v3`
+* [GH-1532](https://github.com/apache/cordova-android/pull/1532) ci: update `codecov/codecov-action` reporting format
+
+### 11.0.0 (Jul 04, 2022)
+
+**Breaking:**
+
+* [GH-1441](https://github.com/apache/cordova-android/pull/1441) feat!: **Android** 12 splash screen
+* [GH-1427](https://github.com/apache/cordova-android/pull/1427) feat!: API 32 support
+* [GH-1410](https://github.com/apache/cordova-android/pull/1410) feat!: API 31 support
+* [GH-1444](https://github.com/apache/cordova-android/pull/1444) fix!: set & use `ANDROID_HOME` as default
+* [GH-1411](https://github.com/apache/cordova-android/pull/1411) chore!: Drop Node 12 support
+
+**Features:**
+
+* [GH-1448](https://github.com/apache/cordova-android/pull/1448) feat: Update `androidx.appcompat` version
+* [GH-1446](https://github.com/apache/cordova-android/pull/1446) feat: Update gradle plugin version
+* [GH-1447](https://github.com/apache/cordova-android/pull/1447) feat: Update google services pluging
+* [GH-1431](https://github.com/apache/cordova-android/pull/1431) feat: support custom `compileSdk` setting
+* [GH-1311](https://github.com/apache/cordova-android/pull/1311) feat: added support for BoM imports
+
+**Fixes:**
+
+* [GH-1455](https://github.com/apache/cordova-android/pull/1455) fix(`prepare`): `destFile` path separator
+* [GH-1453](https://github.com/apache/cordova-android/pull/1453) fix: support installing platfrom from local git checkout
+* [GH-1449](https://github.com/apache/cordova-android/pull/1449) fix: accept file cookies only if `AndroidInsecureFileModeEnabled`
+* [GH-1443](https://github.com/apache/cordova-android/pull/1443) fix: force `hostname` to lowercase
+* [GH-1434](https://github.com/apache/cordova-android/pull/1434) fix: restore `checkReqs` in `prepare.js`
+* [GH-1154](https://github.com/apache/cordova-android/pull/1154) fix: move `MainActivity.java` to folder that tracks the app package name (widget id)
+
+**Chores, Dependencies & CI:**
+
+* [GH-1451](https://github.com/apache/cordova-android/pull/1451) chore: display warning on deprecated `<splash>` tag usage
+* [GH-1430](https://github.com/apache/cordova-android/pull/1430) chore: remove unneeded deprecated annotation
+* [GH-1421](https://github.com/apache/cordova-android/pull/1421) chore(npm): bump `@cordova/eslint-config@^4.0.0`
+* [GH-1420](https://github.com/apache/cordova-android/pull/1420) chore(npm): bump dependencies
+* [GH-1452](https://github.com/apache/cordova-android/pull/1452) dep: bump `jasmine@4.2.1` w/ `package-lock` rebuild
+* [GH-1439](https://github.com/apache/cordova-android/pull/1439) ci: update github action workflow
+* [GH-1424](https://github.com/apache/cordova-android/pull/1424) ci: Added Node 18 to test matrix
+
 ### 10.1.2 (Apr 11, 2022)
 
 **Fixes:**
