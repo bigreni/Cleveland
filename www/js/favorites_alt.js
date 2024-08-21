@@ -37,7 +37,7 @@ function loadArrivals(route,direction,stop)
 	var s_tp = sInfo.split("_");
     $.ajax({
         type: "POST",
-        url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getStopTimes",
+        url: "https://webwatch.gcrta.vontascloud.com/TMWebWatch/Arrivals.aspx/getStopTimes",
         data: "{routeID: " + route + ",	directionID: " + direction + ",	stopID:	" + s_tp[0] + ", tpID:	" + s_tp[1] + ", useArrivalTimes:true}",
         contentType: "application/json;	charset=utf-8",
         dataType: "json",

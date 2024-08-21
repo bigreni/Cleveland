@@ -199,7 +199,7 @@ TransitMaster.StopTimes = function (options) {
 
         $.ajax({
             type: "POST",
-            url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getRoutes",
+            url: "https://webwatch.gcrta.vontascloud.com/TMWebWatch/Arrivals.aspx/getRoutes",
             contentType: "application/json;	charset=utf-8",
             dataType: "json",
             success: function (msg) {
@@ -253,7 +253,7 @@ TransitMaster.StopTimes = function (options) {
 
         $.ajax({
             type: "POST",
-            url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getDirections",
+            url: "https://webwatch.gcrta.vontascloud.com/TMWebWatch/Arrivals.aspx/getDirections",
             data: "{routeID: " + $("#MainMobileContent_routeList").val() + "}",
             contentType: "application/json;	charset=utf-8",
             dataType: "json",
@@ -299,7 +299,7 @@ TransitMaster.StopTimes = function (options) {
 
         $.ajax({
             type: "POST",
-            url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getStops",
+            url: "https://webwatch.gcrta.vontascloud.com/TMWebWatch/Arrivals.aspx/getStops",
             data: "{routeID: " + $("#MainMobileContent_routeList").val() + ",	directionID: " + $("#MainMobileContent_directionList").val() + "}",
             contentType: "application/json;	charset=utf-8",
             dataType: "json",
@@ -346,7 +346,7 @@ TransitMaster.StopTimes = function (options) {
 
         $.ajax({
             type: "POST",
-            url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getStopTimes",
+            url: "https://webwatch.gcrta.vontascloud.com/TMWebWatch/Arrivals.aspx/getStopTimes",
             data: "{routeID: " + $("#MainMobileContent_routeList").val() + ",	directionID: " + $("#MainMobileContent_directionList").val() + ",	stopID:	" + s_tp[0] + ",	tpID:	" + s_tp[1] + ", useArrivalTimes:	" + settings.arrivals + "}",
             contentType: "application/json;	charset=utf-8",
             dataType: "json",
