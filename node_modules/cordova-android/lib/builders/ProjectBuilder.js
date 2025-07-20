@@ -17,8 +17,9 @@
        under the License.
 */
 
-const fs = require('fs-extra');
-const path = require('path');
+const fs = require('node:fs');
+const fsp = require('node:fs/promises');
+const path = require('node:path');
 const execa = require('execa');
 const glob = require('fast-glob');
 const events = require('cordova-common').events;
@@ -174,7 +175,7 @@ class ProjectBuilder {
             try {
                 fs.accessSync(subProjectGradle, fs.F_OK);
             } catch (e) {
-                fs.copySync(pluginBuildGradle, subProjectGradle);
+                fs.cpSync(pluginBuildGradle, subProjectGradle);
             }
         };
 
@@ -207,7 +208,7 @@ class ProjectBuilder {
             settingsGradlePaths.join(''));
 
         // Touch empty cdv-gradle-name.gradle file if missing.
-        if (!fs.pathExistsSync(path.join(this.root, 'cdv-gradle-name.gradle'))) {
+        if (!fs.existsSync(path.join(this.root, 'cdv-gradle-name.gradle'))) {
             fs.writeFileSync(path.join(this.root, 'cdv-gradle-name.gradle'), '');
         }
 
@@ -285,21 +286,60 @@ class ProjectBuilder {
     prepEnv (opts) {
         const self = this;
         const config = this._getCordovaConfig();
+        const configPropertiesPath = path.join(self.root, 'tools', '.gradle', 'config.properties');
+
         return check_reqs.check_gradle()
             .then(function () {
                 events.emit('verbose', `Using Gradle: ${config.GRADLE_VERSION}`);
                 return self.installGradleWrapper(config.GRADLE_VERSION);
+            }).then(async function () {
+                try {
+                    // Try to create "config.properties" file if missing
+                    const fd = fs.openSync(configPropertiesPath, 'wx+', 0o600);
+                    fs.writeFileSync(fd, '', 'utf8');
+                    fs.closeSync(fd);
+                } catch {
+                    // File already existed, nothing to do.
+                }
+
+                // Loads "config.properties"for editing
+                const configProperties = createEditor(configPropertiesPath);
+                /*
+                 * File is replaced on each build. "before_build" hook scripts can inject
+                 * custom settings before this step runs. This step will still overwrite
+                 * the "java.home" setting. Ensure environment variables are properly
+                 * configured if want to use custom "java.home".
+                 *
+                 * Sets "java.home" using the "CORDOVA_JAVA_HOME" environment variable.
+                 * If unavailable, fallback to "JAVA_HOME".
+                 * If neither is set, "java.home" is removed (if previously set),
+                 * allowing Android Studio to display a warning and auto-configure
+                 * to use its internal (bundled) Java.
+                 */
+                const javaHome = process.env.CORDOVA_JAVA_HOME || process.env.JAVA_HOME || false;
+                if (javaHome) {
+                    configProperties.set('java.home', javaHome);
+                } else {
+                    configProperties.unset('java.home');
+                }
+                // Saves changes
+                configProperties.save();
+            }).then(async function () {
+                await fsp.cp(path.join(self.root, 'tools', 'gradle'), path.join(self.root, 'gradle'), { recursive: true, force: true });
+                await fsp.cp(path.join(self.root, 'tools', 'gradlew'), path.join(self.root, 'gradlew'), { recursive: true, force: true });
+                await fsp.cp(path.join(self.root, 'tools', 'gradlew.bat'), path.join(self.root, 'gradlew.bat'), { recursive: true, force: true });
+                await fsp.cp(path.join(self.root, 'tools', '.gradle'), path.join(self.root, '.gradle'), { recursive: true, force: true });
             }).then(function () {
                 return self.prepBuildFiles();
             }).then(() => {
                 const signingPropertiesPath = path.join(self.root, `${opts.buildType}${SIGNING_PROPERTIES}`);
-
-                if (fs.existsSync(signingPropertiesPath)) fs.removeSync(signingPropertiesPath);
                 if (opts.packageInfo) {
-                    fs.ensureFileSync(signingPropertiesPath);
+                    fs.writeFileSync(signingPropertiesPath, '', 'utf8');
                     const signingProperties = createEditor(signingPropertiesPath);
                     signingProperties.addHeadComment(TEMPLATE);
                     opts.packageInfo.appendToProperties(signingProperties);
+                } else {
+                    fs.rmSync(signingPropertiesPath, { force: true });
                 }
             });
     }
@@ -309,7 +349,7 @@ class ProjectBuilder {
      * @returns The user defined configs
      */
     _getCordovaConfig () {
-        return fs.readJSONSync(path.join(this.root, 'cdv-gradle-config.json'));
+        return JSON.parse(fs.readFileSync(path.join(this.root, 'cdv-gradle-config.json'), 'utf-8') || '{}');
     }
 
     /*
@@ -342,7 +382,7 @@ class ProjectBuilder {
         const args = this.getArgs('clean', opts);
         return execa(wrapper, args, { stdio: 'inherit', cwd: path.resolve(this.root) })
             .then(() => {
-                fs.removeSync(path.join(this.root, 'out'));
+                fs.rmSync(path.join(this.root, 'out'), { recursive: true, force: true });
 
                 ['debug', 'release'].map(config => path.join(this.root, `${config}${SIGNING_PROPERTIES}`))
                     .forEach(file => {
@@ -350,7 +390,7 @@ class ProjectBuilder {
                         const hasMarker = hasFile && fs.readFileSync(file, 'utf8')
                             .includes(MARKER);
 
-                        if (hasFile && hasMarker) fs.removeSync(file);
+                        if (hasFile && hasMarker) fs.rmSync(file);
                     });
             });
     }

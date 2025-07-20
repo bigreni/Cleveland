@@ -283,6 +283,11 @@ declare namespace CdvPurchase {
         get canPurchase(): boolean;
         /**
          * Returns true if the product is owned.
+         *
+         * Important: This value will be false when the app starts and will only become
+         * true after purchase receipts have been loaded and validated. Without receipt validation,
+         * it might remain false depending on the platform, make sure to store the ownership status
+         * of non-consumable products in some way.
          */
         get owned(): boolean;
         /** @internal */
@@ -515,6 +520,8 @@ declare namespace CdvPurchase {
              * Trigger the "updated" event for each product.
              */
             productsUpdated(platform: Platform, products: Product[]): void;
+            updatedReceiptsToProcess: Receipt[];
+            updatedReceiptsProcessor: number | undefined;
             /**
              * Triggers the "approved", "pending" and "finished" events for transactions.
              *
@@ -525,6 +532,7 @@ declare namespace CdvPurchase {
              * @param receipts The receipts that have been updated.
              */
             receiptsUpdated(platform: Platform, receipts: Receipt[]): void;
+            private _processUpdatedReceipts;
         }
     }
 }
@@ -645,7 +653,10 @@ declare namespace CdvPurchase {
         class TransactionStateMonitors {
             private monitors;
             private findMonitors;
+            private when;
+            private isListening;
             constructor(when: When);
+            private startListening;
             private callOnChange;
             /**
              * Start monitoring the provided transaction for state changes.
@@ -743,7 +754,7 @@ declare namespace CdvPurchase {
     /**
      * Current release number of the plugin.
      */
-    const PLUGIN_VERSION = "13.11.1";
+    const PLUGIN_VERSION = "13.12.1";
     /**
      * Entry class of the plugin.
      */
@@ -782,7 +793,12 @@ declare namespace CdvPurchase {
          * @see {@link LogLevel}
          */
         verbosity: LogLevel;
-        /** Return the identifier of the user for your application */
+        /**
+         * Return the identifier of the user for your application.
+         *
+         * **Note:** Apple AppStore requires an UUIDv4 if you want it to appear as the "appAccountToken" in
+         * the transaction data.
+         */
         applicationUsername?: string | (() => string | undefined);
         /**
          * Get the application username as a string by either calling or returning {@link Store.applicationUsername}
@@ -912,13 +928,30 @@ declare namespace CdvPurchase {
         /** true if the plugin is initialized and ready */
         get isReady(): boolean;
         /**
-         * Setup events listener.
+         * Register event callbacks.
+         *
+         * Events overview:
+         * - `productUpdated`: Called when product metadata is loaded from the store
+         * - `receiptUpdated`: Called when local receipt information changes (ownership status change, for example)
+         * - `verified`: Called after successful receipt validation (requires a receipt validator)
          *
          * @example
+         * // Monitor ownership with receipt validation
          * store.when()
-         *      .productUpdated(product => updateUI(product))
          *      .approved(transaction => transaction.verify())
-         *      .verified(receipt => receipt.finish());
+         *      .verified(receipt => {
+         *          if (store.owned("my-product")) {
+         *              // Product is owned and verified
+         *          }
+         *      });
+         *
+         * @example
+         * // Monitor ownership without receipt validation
+         * store.when().receiptUpdated(receipt => {
+         *   if (store.owned("my-product")) {
+         *     // Product is owned according to local data
+         *   }
+         * });
          */
         when(): When;
         /**
@@ -981,6 +1014,11 @@ declare namespace CdvPurchase {
         private canPurchase;
         /**
          * Return true if a product is owned
+         *
+         * Important: The value will be false when the app starts and will only become
+         * true after purchase receipts have been loaded and validated. Without receipt validation,
+         * it might remain false depending on the platform, make sure to store the ownership status
+         * of non-consumable products in some way.
          *
          * @param product - The product object or identifier of the product.
          */
@@ -2444,6 +2482,8 @@ declare namespace CdvPurchase {
             autoFinish: boolean;
             /** Callback called when the restore process is completed */
             onRestoreCompleted?: (code: IError | undefined) => void;
+            /** Debounced version of _receiptUpdated */
+            receiptsUpdated: Utils.Debouncer;
             constructor(context: CdvPurchase.Internal.AdapterContext, options: AdapterOptions);
             /** Returns true on iOS, the only platform supported by this adapter */
             get isSupported(): boolean;
@@ -2453,8 +2493,6 @@ declare namespace CdvPurchase {
             /** Insert or update a transaction in the pseudo receipt, based on data collected from the native side */
             private upsertTransaction;
             private removeTransaction;
-            /** Debounced version of _receiptUpdated */
-            private receiptsUpdated;
             /** Notify the store that the receipts have been updated */
             private _receiptsUpdated;
             private _paymentMonitor;
@@ -5330,7 +5368,15 @@ declare namespace CdvPurchase {
         function delay(fn: () => void, milliseconds: number): number;
         /** @internal */
         function debounce(fn: () => void, milliseconds: number): () => void;
+        /** @internal */
+        function createDebouncer(fn: () => void, milliseconds: number): Debouncer;
+        /** @internal */
         function asyncDelay(milliseconds: number): Promise<void>;
+        /** @internal */
+        interface Debouncer {
+            call: () => void;
+            wait: () => Promise<void>;
+        }
     }
 }
 declare namespace CdvPurchase {

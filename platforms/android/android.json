@@ -16,8 +16,8 @@
               "oldAttrib": {
                 "android:hardwareAccelerated": "true",
                 "android:name": "com.google.android.gms.permission.AD_ID",
-                "android:versionCode": "30000",
-                "android:versionName": "3.0",
+                "android:versionCode": "40000",
+                "android:versionName": "4.0",
                 "xmlns:android": "http://schemas.android.com/apk/res/android"
               }
             },
@@ -29,8 +29,8 @@
               "oldAttrib": {
                 "android:hardwareAccelerated": "true",
                 "android:name": "com.android.vending.BILLING",
-                "android:versionCode": "30000",
-                "android:versionName": "3.0",
+                "android:versionCode": "40000",
+                "android:versionName": "4.0",
                 "xmlns:android": "http://schemas.android.com/apk/res/android"
               }
             }
@@ -309,7 +309,7 @@
     "cordova-support-android-plugin": "2.0.4",
     "cordova-plugin-idfa": "3.0.0",
     "cordova-plugin-inappbrowser": "6.0.0",
-    "cordova-plugin-purchase": "13.11.1",
+    "cordova-plugin-purchase": "13.12.1",
     "cordova-plugin-wkwebview-file-xhr": "3.1.1"
   }
 }

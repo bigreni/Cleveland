@@ -48,6 +48,7 @@
     {
 		TransitMaster.StopTimes({arrivals: true, headingLabel: "Arrival"});
         initApp();
+        // checkSubscription();
         checkPermissions();
         askRating();
     }
@@ -199,7 +200,7 @@ TransitMaster.StopTimes = function (options) {
 
         $.ajax({
             type: "POST",
-            url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getRoutes",
+            url: "https://webwatch.gcrta.vontascloud.com/TMWebWatch/Arrivals.aspx/getRoutes",
             contentType: "application/json;	charset=utf-8",
             dataType: "json",
             success: function (msg) {
@@ -253,7 +254,7 @@ TransitMaster.StopTimes = function (options) {
 
         $.ajax({
             type: "POST",
-            url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getDirections",
+            url: "https://webwatch.gcrta.vontascloud.com/TMWebWatch/Arrivals.aspx/getDirections",
             data: "{routeID: " + $("#MainMobileContent_routeList").val() + "}",
             contentType: "application/json;	charset=utf-8",
             dataType: "json",
@@ -299,7 +300,7 @@ TransitMaster.StopTimes = function (options) {
 
         $.ajax({
             type: "POST",
-            url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getStops",
+            url: "https://webwatch.gcrta.vontascloud.com/TMWebWatch/Arrivals.aspx/getStops",
             data: "{routeID: " + $("#MainMobileContent_routeList").val() + ",	directionID: " + $("#MainMobileContent_directionList").val() + "}",
             contentType: "application/json;	charset=utf-8",
             dataType: "json",
@@ -346,7 +347,7 @@ TransitMaster.StopTimes = function (options) {
 
         $.ajax({
             type: "POST",
-            url: "http://www.nextconnect.riderta.com/Arrivals.aspx/getStopTimes",
+            url: "https://webwatch.gcrta.vontascloud.com/TMWebWatch/Arrivals.aspx/getStopTimes",
             data: "{routeID: " + $("#MainMobileContent_routeList").val() + ",	directionID: " + $("#MainMobileContent_directionList").val() + ",	stopID:	" + s_tp[0] + ",	tpID:	" + s_tp[1] + ", useArrivalTimes:	" + settings.arrivals + "}",
             contentType: "application/json;	charset=utf-8",
             dataType: "json",
@@ -436,4 +437,139 @@ TransitMaster.StopTimes = function (options) {
     return {
         displayError: displayError
     };
+}
+
+var platformType;
+var productId;
+
+function checkSubscription()
+{
+    if (/(android)/i.test(navigator.userAgent)){
+        platformType = CdvPurchase.Platform.GOOGLE_PLAY;
+    }
+    else if(/(ipod|iphone|ipad)/i.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document)) {
+        platformType = CdvPurchase.Platform.APPLE_APPSTORE;
+    }
+    else{
+        platformType = CdvPurchase.Platform.TEST;
+    }
+    //var pro = localStorage.getItem("proVersion");
+    productId = localStorage.getItem("productId");
+    CdvPurchase.store.register([{
+        type: CdvPurchase.ProductType.PAID_SUBSCRIPTION,
+        id: 'proversion',
+        platform: platformType,
+        },
+        {
+        type: CdvPurchase.ProductType.PAID_SUBSCRIPTION,
+        id: 'pro_biannual',
+        platform: platformType,
+        },
+        {
+        type: CdvPurchase.ProductType.PAID_SUBSCRIPTION,
+        id: 'pro_annual',
+        platform: platformType,
+        }]); 
+        
+    //   CdvPurchase.store.initialize([CdvPurchase.Platform.TEST]);
+        CdvPurchase.store.initialize([platformType]);
+        
+        //CdvPurchase.store.when().productUpdated(onProductUpdated);
+        //CdvPurchase.store.when().approved(onTransactionApproved);
+        //CdvPurchase.store.restorePurchases();
+        //CdvPurchase.store.update();
+        // if (/(android)/i.test(navigator.userAgent))
+        // {
+             CdvPurchase.store.when().receiptsReady(onReceiptReady);
+        // }
+        // else if(/(ipod|iphone|ipad)/i.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document)) {
+        //CdvPurchase.store.when().receiptUpdated(onReceiptUpdated);
+        //}
+        //CdvPurchase.store.when().receiptsVerified(onProductUpdated);
+}
+
+function onTransactionApproved(transaction)
+{
+      localStorage.proVersion = 1;
+      localStorage.productId = transaction.products[0].id;
+      transaction.finish();
+      //window.location = "index.html";
+}
+
+var iapInitialReceiptUpdated = false;
+
+function onReceiptUpdated(receipt)
+{
+    CdvPurchase.store.restorePurchases();
+    if(/(ipod|iphone|ipad)/i.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document))
+    {
+        if(!iapInitialReceiptUpdated){
+            if(receipt.transactions.length == 1){
+                receipt.verify();
+            }
+            iapInitialReceiptUpdated=true;
+        }
+    }
+
+    productId = localStorage.getItem("productId");
+    //alert(receipt.transactions[0].products[0].id);
+    //CdvPurchase.store.update();
+    var owned = CdvPurchase.store.owned(productId, platformType);
+    //alert("owned: " + owned)
+    //const product = CdvPurchase.store.get(productId, platformType);
+    //alert("desc: " + + product.description + '- ID: ' + product.id + '- Platform: ' + product.platform + '- Owned:' + product.owned + '- Title:' + product.title);
+    if(owned != null && owned)
+    {
+        //alert("setting pro");
+        localStorage.proVersion = 1;
+        localStorage.productId = productId;
+    }
+    else
+    {
+        //alert("not pro");
+        localStorage.proVersion = 0;
+        //localStorage.productId = "";
+    }
+    
+}
+
+function onReceiptReady()
+{
+    CdvPurchase.store.restorePurchases();
+    const receipt = CdvPurchase.store.localReceipts[0];
+    if(/(ipod|iphone|ipad)/i.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document))
+    {
+        if(!iapInitialReceiptUpdated){
+            if(receipt.transactions.length == 1){
+                receipt.verify();
+            }
+            iapInitialReceiptUpdated=true;
+        }
+    }
+
+    productId = localStorage.getItem("productId");
+    //alert(receipt.transactions[0].products[0].id);
+    //CdvPurchase.store.update();
+    var owned = CdvPurchase.store.owned(productId, platformType);
+    //alert("owned: " + owned)
+    //const product = CdvPurchase.store.get(productId, platformType);
+    //alert("desc: " + + product.description + '- ID: ' + product.id + '- Platform: ' + product.platform + '- Owned:' + product.owned + '- Title:' + product.title);
+    if(owned != null && owned)
+    {
+        //alert("setting pro");
+        localStorage.proVersion = 1;
+        localStorage.productId = productId;
+    }
+    else
+    {
+        //alert("not pro");
+        localStorage.proVersion = 0;
+        //localStorage.productId = "";
+    }
+}
+
+function proSubscription()
+{
+    window.location = "Subscription.html";
+    //myProduct.getOffer().order();
 }

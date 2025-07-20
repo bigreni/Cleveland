@@ -32,10 +32,10 @@
     "cordova-plugin-inappbrowser": {
       "PACKAGE_NAME": "com.cleveland.withads"
     },
-    "cordova-plugin-purchase": {
+    "cordova-plugin-wkwebview-file-xhr": {
       "PACKAGE_NAME": "com.cleveland.withads"
     },
-    "cordova-plugin-wkwebview-file-xhr": {
+    "cordova-plugin-purchase": {
       "PACKAGE_NAME": "com.cleveland.withads"
     }
   },

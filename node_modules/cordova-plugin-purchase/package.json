@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-purchase",
-  "version": "13.11.1",
+  "version": "13.12.1",
   "description": "Cordova Purchase plugin for iOS, Android, Windows (AppStore, Play, UWP)",
   "cordova": {
     "id": "cordova-plugin-purchase",
@@ -61,7 +61,7 @@
     "/plugin.xml",
     "/README.md",
     "/RELEASE_NOTES.md",
-    "/src/android",
+    "/src/android/cc/fovea",
     "/src/ios",
     "/src/ts",
     "/src/windows",

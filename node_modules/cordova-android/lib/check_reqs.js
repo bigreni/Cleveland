@@ -17,9 +17,8 @@
        under the License.
 */
 
-const execa = require('execa');
-const path = require('path');
-const fs = require('fs-extra');
+const path = require('node:path');
+const fs = require('node:fs');
 const { forgivingWhichSync, isWindows, isDarwin } = require('./utils');
 const java = require('./env/java');
 const { CordovaError, ConfigParser, events } = require('cordova-common');
@@ -104,44 +103,7 @@ function getUserCompileSdkVersion (projectRoot) {
 }
 
 module.exports.get_gradle_wrapper = function () {
-    let androidStudioPath;
-    let i = 0;
-    let foundStudio = false;
-    let program_dir;
-    // OK, This hack only works on Windows, not on Mac OS or Linux.  We will be deleting this eventually!
-    if (module.exports.isWindows()) {
-        const result = execa.sync(path.join(__dirname, 'getASPath.bat'));
-        // console.log('result.stdout =' + result.stdout.toString());
-        // console.log('result.stderr =' + result.stderr.toString());
-
-        if (result.stderr.toString().length > 0) {
-            const androidPath = path.join(process.env.ProgramFiles, 'Android') + '/';
-            if (fs.existsSync(androidPath)) {
-                program_dir = fs.readdirSync(androidPath);
-                while (i < program_dir.length && !foundStudio) {
-                    if (program_dir[i].startsWith('Android Studio')) {
-                        foundStudio = true;
-                        androidStudioPath = path.join(process.env.ProgramFiles, 'Android', program_dir[i], 'gradle');
-                    } else { ++i; }
-                }
-            }
-        } else {
-            // console.log('got android studio path from registry');
-            // remove the (os independent) new line char at the end of stdout
-            // add gradle to match the above.
-            androidStudioPath = path.join(result.stdout.toString().split('\r\n')[0], 'gradle');
-        }
-    }
-
-    if (androidStudioPath !== null && fs.existsSync(androidStudioPath)) {
-        const dirs = fs.readdirSync(androidStudioPath);
-        if (dirs[0].split('-')[0] === 'gradle') {
-            return path.join(androidStudioPath, dirs[0], 'bin', 'gradle');
-        }
-    } else {
-        // OK, let's try to check for Gradle!
-        return forgivingWhichSync('gradle');
-    }
+    return forgivingWhichSync('gradle');
 };
 
 // Returns a promise. Called only by build and clean commands.
